@@ -1,0 +1,211 @@
+{
+  "cells": [
+    {
+      "cell_type": "code",
+      "source": [
+        "import sys\n",
+        "import os\n",
+        "\n",
+        "# Add full path to the src folder so Python can find your modules\n",
+        "sys.path.append(os.path.abspath(\"..\"))\n",
+        "\n",
+        "# Now you can safely import\n",
+        "from pipeline.pipeline import run_pipeline"
+      ],
+      "outputs": [],
+      "execution_count": 12,
+      "metadata": {
+        "gather": {
+          "logged": 1746924211482
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import os\n",
+        "\n",
+        "folder_path = \"../../SPY_Model/data/raw\"\n",
+        "\n",
+        "print(\"CSV files in folder:\")\n",
+        "for file in os.listdir(folder_path):\n",
+        "    if file.endswith(\".csv\"):\n",
+        "        print(file)"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "CSV files in folder:\nconfident_predictions.csv\nSPY_5min_2020_05.csv\nSPY_5min_2020_06.csv\nSPY_5min_2020_07.csv\nSPY_5min_2020_08.csv\nSPY_5min_2020_09.csv\nSPY_5min_2020_10.csv\nSPY_5min_2020_11.csv\nSPY_5min_2020_12.csv\nSPY_5min_2021_01.csv\nSPY_5min_2021_02.csv\nSPY_5min_2021_03.csv\nSPY_5min_2021_04.csv\nSPY_5min_2021_05.csv\nSPY_5min_2021_06.csv\nSPY_5min_2021_07.csv\nSPY_5min_2021_08.csv\nSPY_5min_2021_09.csv\nSPY_5min_2021_10.csv\nSPY_5min_2021_11.csv\nSPY_5min_2021_12.csv\nSPY_5min_2022_01.csv\nSPY_5min_2022_02.csv\nSPY_5min_2022_03.csv\nSPY_5min_2022_04.csv\nSPY_5min_2022_05.csv\nSPY_5min_2022_06.csv\nSPY_5min_2022_07.csv\nSPY_5min_2022_08.csv\nSPY_5min_2022_09.csv\nSPY_5min_2022_10.csv\nSPY_5min_2022_11.csv\nSPY_5min_2022_12.csv\nSPY_5min_2023_01.csv\nSPY_5min_2023_02.csv\nSPY_5min_2023_03.csv\nSPY_5min_2023_04.csv\nSPY_5min_2023_05.csv\nSPY_5min_2023_06.csv\nSPY_5min_2023_07.csv\nSPY_5min_2023_08.csv\nSPY_5min_2023_09.csv\nSPY_5min_2023_10.csv\nSPY_5min_2023_11.csv\nSPY_5min_2023_12.csv\nSPY_5min_2024_01.csv\nSPY_5min_2024_02.csv\nSPY_5min_2024_03.csv\nSPY_5min_2024_04.csv\nSPY_5min_2024_05.csv\nSPY_5min_2024_06.csv\nSPY_5min_2024_07.csv\nSPY_5min_2024_08.csv\nSPY_5min_2024_09.csv\nSPY_5min_2024_10.csv\nSPY_5min_2024_11.csv\nSPY_5min_2024_12.csv\nSPY_5min_2025_01.csv\nSPY_5min_2025_02.csv\nSPY_5min_2025_03.csv\nSPY_5min_2025_04.csv\nSPY_5min_full.csv\n"
+        }
+      ],
+      "execution_count": 15,
+      "metadata": {
+        "gather": {
+          "logged": 1746924338957
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "\n",
+        "df = pd.read_csv(\"../../SPY_Model/data/raw/SPY_5min_full.csv\", parse_dates=[\"timestamp\"])\n",
+        "df[\"date\"] = df[\"timestamp\"].dt.date\n",
+        "df[\"time\"] = df[\"timestamp\"].dt.time\n",
+        "\n",
+        "# Filter only 9:30 and 9:35\n",
+        "df_filtered = df[(df[\"time\"] == pd.to_datetime(\"09:30\").time()) | (df[\"time\"] == pd.to_datetime(\"09:35\").time())]\n",
+        "\n",
+        "# Drop duplicates manually\n",
+        "df_no_duplicates = df_filtered.drop_duplicates(subset=[\"date\", \"time\"], keep=\"first\")\n",
+        "\n",
+        "# Check again\n",
+        "dupes = df_no_duplicates[df_no_duplicates.duplicated(subset=[\"date\", \"time\"], keep=False)]\n",
+        "print(\"Duplicates after dropping:\", len(dupes))"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Duplicates after dropping: 0\n"
+        }
+      ],
+      "execution_count": 23,
+      "metadata": {
+        "gather": {
+          "logged": 1746924746975
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "\n",
+        "# Load raw data\n",
+        "df = pd.read_csv(\"../../SPY_Model/data/raw/SPY_5min_full.csv\", parse_dates=[\"timestamp\"])\n",
+        "df[\"date\"] = df[\"timestamp\"].dt.date\n",
+        "df[\"time\"] = df[\"timestamp\"].dt.time\n",
+        "\n",
+        "# Keep only 9:30 and 9:35\n",
+        "df = df[(df[\"time\"] == pd.to_datetime(\"09:30\").time()) | (df[\"time\"] == pd.to_datetime(\"09:35\").time())]\n",
+        "\n",
+        "# Drop duplicates\n",
+        "df = df.drop_duplicates(subset=[\"date\", \"time\"], keep=\"first\")\n",
+        "\n",
+        "# Count how many time points per day\n",
+        "time_counts = df.groupby(\"date\")[\"time\"].nunique()\n",
+        "invalid_dates = time_counts[time_counts != 2].index\n",
+        "\n",
+        "# Show offending rows\n",
+        "bad_rows = df[df[\"date\"].isin(invalid_dates)]\n",
+        "print(\"Bad dates with wrong time count:\")\n",
+        "print(bad_rows.groupby([\"date\", \"time\"]).size())\n",
+        "\n",
+        "# Drop the problematic dates\n",
+        "df_cleaned = df[~df[\"date\"].isin(invalid_dates)]\n",
+        "\n",
+        "# Pivot\n",
+        "pivot = df_cleaned.pivot(index=\"date\", columns=\"time\", values=\"close\")\n",
+        "print(\"Pivot successful. Shape:\", pivot.shape)"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Bad dates with wrong time count:\ndate        time    \n2020-07-17  09:30:00    1\n2020-07-21  09:30:00    1\n2020-07-22  09:30:00    1\n2020-07-23  09:30:00    1\n2020-07-28  09:30:00    1\n                       ..\n2024-12-06  09:35:00    1\n2024-12-18  09:30:00    1\n2024-12-24  09:30:00    1\n2025-02-20  09:30:00    1\n2025-03-11  09:30:00    1\nLength: 127, dtype: int64\nPivot successful. Shape: (1111, 2)\n"
+        }
+      ],
+      "execution_count": 34,
+      "metadata": {
+        "gather": {
+          "logged": 1746925670030
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import sys\n",
+        "import os\n",
+        "\n",
+        "# Allow notebook to import from src/\n",
+        "sys.path.append(os.path.abspath(\"../src\"))\n",
+        "\n",
+        "from pipeline.pipeline import run_pipeline\n",
+        "\n",
+        "# Use your actual CSV path if it's still in the old SPY_Model folder\n",
+        "data_path = \"../../SPY_Model/data/raw/SPY_5min_full.csv\"\n",
+        "\n",
+        "run_pipeline(data_path)"
+      ],
+      "outputs": [
+        {
+          "output_type": "error",
+          "ename": "ValueError",
+          "evalue": "Index contains duplicate entries, cannot reshape",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mValueError\u001b[0m                                Traceback (most recent call last)",
+            "Cell \u001b[0;32mIn[35], line 12\u001b[0m\n\u001b[1;32m      9\u001b[0m \u001b[38;5;66;03m# Use your actual CSV path if it's still in the old SPY_Model folder\u001b[39;00m\n\u001b[1;32m     10\u001b[0m data_path \u001b[38;5;241m=\u001b[39m \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m../../SPY_Model/data/raw/SPY_5min_full.csv\u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[0;32m---> 12\u001b[0m \u001b[43mrun_pipeline\u001b[49m\u001b[43m(\u001b[49m\u001b[43mdata_path\u001b[49m\u001b[43m)\u001b[49m\n",
+            "File \u001b[0;32m/mnt/batch/tasks/shared/LS_root/mounts/clusters/arisgkourelas1/code/Users/arisgkourelas/911GT3RS/src/pipeline/pipeline.py:14\u001b[0m, in \u001b[0;36mrun_pipeline\u001b[0;34m(data_path)\u001b[0m\n\u001b[1;32m     11\u001b[0m df_filtered \u001b[38;5;241m=\u001b[39m df[df[\u001b[38;5;124m'\u001b[39m\u001b[38;5;124mis_930\u001b[39m\u001b[38;5;124m'\u001b[39m] \u001b[38;5;241m|\u001b[39m df[\u001b[38;5;124m'\u001b[39m\u001b[38;5;124mis_935\u001b[39m\u001b[38;5;124m'\u001b[39m]]\u001b[38;5;241m.\u001b[39mcopy()\n\u001b[1;32m     13\u001b[0m \u001b[38;5;66;03m# Pivot so each row is a date, columns are times\u001b[39;00m\n\u001b[0;32m---> 14\u001b[0m df_pivot \u001b[38;5;241m=\u001b[39m \u001b[43mdf_filtered\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mpivot\u001b[49m\u001b[43m(\u001b[49m\u001b[43mindex\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mdate\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mcolumns\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mtime\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mvalues\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mclose\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m)\u001b[49m\n\u001b[1;32m     16\u001b[0m \u001b[38;5;66;03m# Create target: percent return 9:30 → 9:35\u001b[39;00m\n\u001b[1;32m     17\u001b[0m time_930 \u001b[38;5;241m=\u001b[39m pd\u001b[38;5;241m.\u001b[39mto_datetime(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m09:30\u001b[39m\u001b[38;5;124m\"\u001b[39m)\u001b[38;5;241m.\u001b[39mtime()\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py310_sdkv2/lib/python3.10/site-packages/pandas/util/_decorators.py:331\u001b[0m, in \u001b[0;36mdeprecate_nonkeyword_arguments.<locals>.decorate.<locals>.wrapper\u001b[0;34m(*args, **kwargs)\u001b[0m\n\u001b[1;32m    325\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mlen\u001b[39m(args) \u001b[38;5;241m>\u001b[39m num_allow_args:\n\u001b[1;32m    326\u001b[0m     warnings\u001b[38;5;241m.\u001b[39mwarn(\n\u001b[1;32m    327\u001b[0m         msg\u001b[38;5;241m.\u001b[39mformat(arguments\u001b[38;5;241m=\u001b[39m_format_argument_list(allow_args)),\n\u001b[1;32m    328\u001b[0m         \u001b[38;5;167;01mFutureWarning\u001b[39;00m,\n\u001b[1;32m    329\u001b[0m         stacklevel\u001b[38;5;241m=\u001b[39mfind_stack_level(),\n\u001b[1;32m    330\u001b[0m     )\n\u001b[0;32m--> 331\u001b[0m \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[43mfunc\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43margs\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py310_sdkv2/lib/python3.10/site-packages/pandas/core/frame.py:8567\u001b[0m, in \u001b[0;36mDataFrame.pivot\u001b[0;34m(self, index, columns, values)\u001b[0m\n\u001b[1;32m   8561\u001b[0m \u001b[38;5;129m@Substitution\u001b[39m(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m\"\u001b[39m)\n\u001b[1;32m   8562\u001b[0m \u001b[38;5;129m@Appender\u001b[39m(_shared_docs[\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mpivot\u001b[39m\u001b[38;5;124m\"\u001b[39m])\n\u001b[1;32m   8563\u001b[0m \u001b[38;5;129m@deprecate_nonkeyword_arguments\u001b[39m(version\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mNone\u001b[39;00m, allowed_args\u001b[38;5;241m=\u001b[39m[\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mself\u001b[39m\u001b[38;5;124m\"\u001b[39m])\n\u001b[1;32m   8564\u001b[0m \u001b[38;5;28;01mdef\u001b[39;00m\u001b[38;5;250m \u001b[39m\u001b[38;5;21mpivot\u001b[39m(\u001b[38;5;28mself\u001b[39m, index\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mNone\u001b[39;00m, columns\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mNone\u001b[39;00m, values\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mNone\u001b[39;00m) \u001b[38;5;241m-\u001b[39m\u001b[38;5;241m>\u001b[39m DataFrame:\n\u001b[1;32m   8565\u001b[0m     \u001b[38;5;28;01mfrom\u001b[39;00m\u001b[38;5;250m \u001b[39m\u001b[38;5;21;01mpandas\u001b[39;00m\u001b[38;5;21;01m.\u001b[39;00m\u001b[38;5;21;01mcore\u001b[39;00m\u001b[38;5;21;01m.\u001b[39;00m\u001b[38;5;21;01mreshape\u001b[39;00m\u001b[38;5;21;01m.\u001b[39;00m\u001b[38;5;21;01mpivot\u001b[39;00m\u001b[38;5;250m \u001b[39m\u001b[38;5;28;01mimport\u001b[39;00m pivot\n\u001b[0;32m-> 8567\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[43mpivot\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;28;43mself\u001b[39;49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mindex\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mindex\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mcolumns\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mcolumns\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mvalues\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mvalues\u001b[49m\u001b[43m)\u001b[49m\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py310_sdkv2/lib/python3.10/site-packages/pandas/util/_decorators.py:331\u001b[0m, in \u001b[0;36mdeprecate_nonkeyword_arguments.<locals>.decorate.<locals>.wrapper\u001b[0;34m(*args, **kwargs)\u001b[0m\n\u001b[1;32m    325\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mlen\u001b[39m(args) \u001b[38;5;241m>\u001b[39m num_allow_args:\n\u001b[1;32m    326\u001b[0m     warnings\u001b[38;5;241m.\u001b[39mwarn(\n\u001b[1;32m    327\u001b[0m         msg\u001b[38;5;241m.\u001b[39mformat(arguments\u001b[38;5;241m=\u001b[39m_format_argument_list(allow_args)),\n\u001b[1;32m    328\u001b[0m         \u001b[38;5;167;01mFutureWarning\u001b[39;00m,\n\u001b[1;32m    329\u001b[0m         stacklevel\u001b[38;5;241m=\u001b[39mfind_stack_level(),\n\u001b[1;32m    330\u001b[0m     )\n\u001b[0;32m--> 331\u001b[0m \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[43mfunc\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43margs\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py310_sdkv2/lib/python3.10/site-packages/pandas/core/reshape/pivot.py:540\u001b[0m, in \u001b[0;36mpivot\u001b[0;34m(data, index, columns, values)\u001b[0m\n\u001b[1;32m    536\u001b[0m         indexed \u001b[38;5;241m=\u001b[39m data\u001b[38;5;241m.\u001b[39m_constructor_sliced(data[values]\u001b[38;5;241m.\u001b[39m_values, index\u001b[38;5;241m=\u001b[39mmultiindex)\n\u001b[1;32m    537\u001b[0m \u001b[38;5;66;03m# error: Argument 1 to \"unstack\" of \"DataFrame\" has incompatible type \"Union\u001b[39;00m\n\u001b[1;32m    538\u001b[0m \u001b[38;5;66;03m# [List[Any], ExtensionArray, ndarray[Any, Any], Index, Series]\"; expected\u001b[39;00m\n\u001b[1;32m    539\u001b[0m \u001b[38;5;66;03m# \"Hashable\"\u001b[39;00m\n\u001b[0;32m--> 540\u001b[0m \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[43mindexed\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43munstack\u001b[49m\u001b[43m(\u001b[49m\u001b[43mcolumns_listlike\u001b[49m\u001b[43m)\u001b[49m\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py310_sdkv2/lib/python3.10/site-packages/pandas/core/series.py:4455\u001b[0m, in \u001b[0;36mSeries.unstack\u001b[0;34m(self, level, fill_value)\u001b[0m\n\u001b[1;32m   4412\u001b[0m \u001b[38;5;250m\u001b[39m\u001b[38;5;124;03m\"\"\"\u001b[39;00m\n\u001b[1;32m   4413\u001b[0m \u001b[38;5;124;03mUnstack, also known as pivot, Series with MultiIndex to produce DataFrame.\u001b[39;00m\n\u001b[1;32m   4414\u001b[0m \n\u001b[0;32m   (...)\u001b[0m\n\u001b[1;32m   4451\u001b[0m \u001b[38;5;124;03mb    2    4\u001b[39;00m\n\u001b[1;32m   4452\u001b[0m \u001b[38;5;124;03m\"\"\"\u001b[39;00m\n\u001b[1;32m   4453\u001b[0m \u001b[38;5;28;01mfrom\u001b[39;00m\u001b[38;5;250m \u001b[39m\u001b[38;5;21;01mpandas\u001b[39;00m\u001b[38;5;21;01m.\u001b[39;00m\u001b[38;5;21;01mcore\u001b[39;00m\u001b[38;5;21;01m.\u001b[39;00m\u001b[38;5;21;01mreshape\u001b[39;00m\u001b[38;5;21;01m.\u001b[39;00m\u001b[38;5;21;01mreshape\u001b[39;00m\u001b[38;5;250m \u001b[39m\u001b[38;5;28;01mimport\u001b[39;00m unstack\n\u001b[0;32m-> 4455\u001b[0m \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[43munstack\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;28;43mself\u001b[39;49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mlevel\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mfill_value\u001b[49m\u001b[43m)\u001b[49m\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py310_sdkv2/lib/python3.10/site-packages/pandas/core/reshape/reshape.py:489\u001b[0m, in \u001b[0;36munstack\u001b[0;34m(obj, level, fill_value)\u001b[0m\n\u001b[1;32m    487\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m is_1d_only_ea_dtype(obj\u001b[38;5;241m.\u001b[39mdtype):\n\u001b[1;32m    488\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m _unstack_extension_series(obj, level, fill_value)\n\u001b[0;32m--> 489\u001b[0m unstacker \u001b[38;5;241m=\u001b[39m \u001b[43m_Unstacker\u001b[49m\u001b[43m(\u001b[49m\n\u001b[1;32m    490\u001b[0m \u001b[43m    \u001b[49m\u001b[43mobj\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mindex\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mlevel\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mlevel\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mconstructor\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mobj\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43m_constructor_expanddim\u001b[49m\n\u001b[1;32m    491\u001b[0m \u001b[43m\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    492\u001b[0m \u001b[38;5;28;01mreturn\u001b[39;00m unstacker\u001b[38;5;241m.\u001b[39mget_result(\n\u001b[1;32m    493\u001b[0m     obj\u001b[38;5;241m.\u001b[39m_values, value_columns\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mNone\u001b[39;00m, fill_value\u001b[38;5;241m=\u001b[39mfill_value\n\u001b[1;32m    494\u001b[0m )\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py310_sdkv2/lib/python3.10/site-packages/pandas/core/reshape/reshape.py:137\u001b[0m, in \u001b[0;36m_Unstacker.__init__\u001b[0;34m(self, index, level, constructor)\u001b[0m\n\u001b[1;32m    129\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m num_cells \u001b[38;5;241m>\u001b[39m np\u001b[38;5;241m.\u001b[39miinfo(np\u001b[38;5;241m.\u001b[39mint32)\u001b[38;5;241m.\u001b[39mmax:\n\u001b[1;32m    130\u001b[0m     warnings\u001b[38;5;241m.\u001b[39mwarn(\n\u001b[1;32m    131\u001b[0m         \u001b[38;5;124mf\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mThe following operation may generate \u001b[39m\u001b[38;5;132;01m{\u001b[39;00mnum_cells\u001b[38;5;132;01m}\u001b[39;00m\u001b[38;5;124m cells \u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m    132\u001b[0m         \u001b[38;5;124mf\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124min the resulting pandas object.\u001b[39m\u001b[38;5;124m\"\u001b[39m,\n\u001b[1;32m    133\u001b[0m         PerformanceWarning,\n\u001b[1;32m    134\u001b[0m         stacklevel\u001b[38;5;241m=\u001b[39mfind_stack_level(),\n\u001b[1;32m    135\u001b[0m     )\n\u001b[0;32m--> 137\u001b[0m \u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43m_make_selectors\u001b[49m\u001b[43m(\u001b[49m\u001b[43m)\u001b[49m\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py310_sdkv2/lib/python3.10/site-packages/pandas/core/reshape/reshape.py:189\u001b[0m, in \u001b[0;36m_Unstacker._make_selectors\u001b[0;34m(self)\u001b[0m\n\u001b[1;32m    186\u001b[0m mask\u001b[38;5;241m.\u001b[39mput(selector, \u001b[38;5;28;01mTrue\u001b[39;00m)\n\u001b[1;32m    188\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m mask\u001b[38;5;241m.\u001b[39msum() \u001b[38;5;241m<\u001b[39m \u001b[38;5;28mlen\u001b[39m(\u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mindex):\n\u001b[0;32m--> 189\u001b[0m     \u001b[38;5;28;01mraise\u001b[39;00m \u001b[38;5;167;01mValueError\u001b[39;00m(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mIndex contains duplicate entries, cannot reshape\u001b[39m\u001b[38;5;124m\"\u001b[39m)\n\u001b[1;32m    191\u001b[0m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mgroup_index \u001b[38;5;241m=\u001b[39m comp_index\n\u001b[1;32m    192\u001b[0m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mmask \u001b[38;5;241m=\u001b[39m mask\n",
+            "\u001b[0;31mValueError\u001b[0m: Index contains duplicate entries, cannot reshape"
+          ]
+        }
+      ],
+      "execution_count": 35,
+      "metadata": {
+        "gather": {
+          "logged": 1746925673228
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python310-sdkv2",
+      "language": "python",
+      "display_name": "Python 3.10 - SDK v2"
+    },
+    "language_info": {
+      "name": "python",
+      "version": "3.10.16",
+      "mimetype": "text/x-python",
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "pygments_lexer": "ipython3",
+      "nbconvert_exporter": "python",
+      "file_extension": ".py"
+    },
+    "microsoft": {
+      "ms_spell_check": {
+        "ms_spell_check_language": "en"
+      },
+      "host": {
+        "AzureML": {
+          "notebookHasBeenCompleted": true
+        }
+      }
+    },
+    "kernel_info": {
+      "name": "python310-sdkv2"
+    },
+    "nteract": {
+      "version": "nteract-front-end@1.0.0"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 2
+}

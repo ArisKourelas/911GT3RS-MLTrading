@@ -1,0 +1,1 @@
+!pip install yfinance xgboost pandas numpy matplotlib scikit-learn --quiet

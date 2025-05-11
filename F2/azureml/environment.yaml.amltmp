@@ -1,0 +1,10 @@
+name: spy-env
+dependencies:
+  - python=3.9
+  - pip:
+    - pandas
+    - numpy
+    - scikit-learn
+    - lightgbm
+    - mlflow
+    - azureml-sdk

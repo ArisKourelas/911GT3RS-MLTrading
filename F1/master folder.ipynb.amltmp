@@ -1,0 +1,110 @@
+{
+  "cells": [
+    {
+      "cell_type": "code",
+      "source": [
+        "import os\n",
+        "\n",
+        "base = \"SPY_Model\"\n",
+        "folders = [\n",
+        "    \"data/raw\", \"data/processed\", \"data/features\",\n",
+        "    \"notebooks\",\n",
+        "    \"models/saved_models\", \"models/ensemble_outputs\",\n",
+        "    \"outputs/reports\",\n",
+        "    \"utils\"\n",
+        "]\n",
+        "\n",
+        "for folder in folders:\n",
+        "    os.makedirs(os.path.join(base, folder), exist_ok=True)\n",
+        "\n",
+        "print(\"Folder structure rebuilt.\")"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Folder structure rebuilt.\n"
+        }
+      ],
+      "execution_count": 1,
+      "metadata": {
+        "gather": {
+          "logged": 1746853607584
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "load_data_code = '''\n",
+        "import pandas as pd\n",
+        "import os\n",
+        "\n",
+        "def load_csv(filename, subfolder='raw'):\n",
+        "    \"\"\"\n",
+        "    Load a CSV from the data directory.\n",
+        "\n",
+        "    Args:\n",
+        "        filename (str): Name of the file (e.g., 'spy_data.csv')\n",
+        "        subfolder (str): Subdirectory under /data (e.g., 'raw', 'processed')\n",
+        "\n",
+        "    Returns:\n",
+        "        pd.DataFrame: Loaded DataFrame\n",
+        "    \"\"\"\n",
+        "    path = os.path.join(\"data\", subfolder, filename)\n",
+        "    return pd.read_csv(path)\n",
+        "'''\n",
+        "\n",
+        "with open(\"SPY_Model/utils/load_data.py\", \"w\") as f:\n",
+        "    f.write(load_data_code)\n",
+        "\n",
+        "print(\"load_data.py restored.\")"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "load_data.py restored.\n"
+        }
+      ],
+      "execution_count": 2,
+      "metadata": {
+        "gather": {
+          "logged": 1746853711144
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python310-sdkv2",
+      "language": "python",
+      "display_name": "Python 3.10 - SDK v2"
+    },
+    "language_info": {
+      "name": "python",
+      "version": "3.10.16",
+      "mimetype": "text/x-python",
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "pygments_lexer": "ipython3",
+      "nbconvert_exporter": "python",
+      "file_extension": ".py"
+    },
+    "microsoft": {
+      "ms_spell_check": {
+        "ms_spell_check_language": "en"
+      }
+    },
+    "kernel_info": {
+      "name": "python310-sdkv2"
+    },
+    "nteract": {
+      "version": "nteract-front-end@1.0.0"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 2
+}

@@ -1,0 +1,2678 @@
+{
+  "cells": [
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 1: Setup and Imports\n",
+        "import pandas as pd\n",
+        "import numpy as np\n",
+        "import matplotlib.pyplot as plt\n",
+        "from datetime import datetime, timedelta\n",
+        "from xgboost import XGBClassifier\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "import warnings\n",
+        "warnings.filterwarnings(\"ignore\")\n",
+        "\n",
+        "print(\"Setup complete.\")"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": "/anaconda/envs/azureml_py38/lib/python3.10/site-packages/xgboost/compat.py:36: FutureWarning: pandas.Int64Index is deprecated and will be removed from pandas in a future version. Use pandas.Index with the appropriate dtype instead.\n  from pandas import MultiIndex, Int64Index\n"
+        },
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Setup complete.\n"
+        }
+      ],
+      "execution_count": 1,
+      "metadata": {
+        "gather": {
+          "logged": 1746851251518
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import os\n",
+        "print(\"Current working directory:\", os.getcwd())"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Current working directory: /mnt/batch/tasks/shared/LS_root/mounts/clusters/arisgkourelas1/code/Users/arisgkourelas/SPY_Model\n"
+        }
+      ],
+      "execution_count": 34,
+      "metadata": {
+        "gather": {
+          "logged": 1746852694147
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import os\n",
+        "import shutil\n",
+        "\n",
+        "# Base working directory\n",
+        "base_dir = \"/mnt/batch/tasks/shared/LS_root/mounts/clusters/arisgkourelas1/code/Users/arisgkourelas/SPY_Model\"\n",
+        "\n",
+        "source_folder = base_dir\n",
+        "target_folder = os.path.join(base_dir, \"data\", \"raw\")\n",
+        "\n",
+        "# Create target folder if it doesn't exist\n",
+        "os.makedirs(target_folder, exist_ok=True)\n",
+        "\n",
+        "# Move all SPY_5min CSVs to data/raw\n",
+        "for filename in os.listdir(source_folder):\n",
+        "    if filename.startswith(\"SPY_5min\") and filename.endswith(\".csv\"):\n",
+        "        src = os.path.join(source_folder, filename)\n",
+        "        dst = os.path.join(target_folder, filename)\n",
+        "        shutil.move(src, dst)\n",
+        "        print(f\"Moved: {filename}\")\n",
+        "\n",
+        "print(\"All matching files moved successfully.\")"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Moved: SPY_5min_2020_05.csv\nMoved: SPY_5min_2020_06.csv\nMoved: SPY_5min_2020_07.csv\nMoved: SPY_5min_2020_08.csv\nMoved: SPY_5min_2020_09.csv\nMoved: SPY_5min_2020_10.csv\nMoved: SPY_5min_2020_11.csv\nMoved: SPY_5min_2020_12.csv\nMoved: SPY_5min_2021_01.csv\nMoved: SPY_5min_2021_02.csv\nMoved: SPY_5min_2021_03.csv\nMoved: SPY_5min_2021_04.csv\nMoved: SPY_5min_2021_05.csv\nMoved: SPY_5min_2021_06.csv\nMoved: SPY_5min_2021_07.csv\nMoved: SPY_5min_2021_08.csv\nMoved: SPY_5min_2021_09.csv\nMoved: SPY_5min_2021_10.csv\nMoved: SPY_5min_2021_11.csv\nMoved: SPY_5min_2021_12.csv\nMoved: SPY_5min_2022_01.csv\nMoved: SPY_5min_2022_02.csv\nMoved: SPY_5min_2022_03.csv\nMoved: SPY_5min_2022_04.csv\nMoved: SPY_5min_2022_05.csv\nMoved: SPY_5min_2022_06.csv\nMoved: SPY_5min_2022_07.csv\nMoved: SPY_5min_2022_08.csv\nMoved: SPY_5min_2022_09.csv\nMoved: SPY_5min_2022_10.csv\nMoved: SPY_5min_2022_11.csv\nMoved: SPY_5min_2022_12.csv\nMoved: SPY_5min_2023_01.csv\nMoved: SPY_5min_2023_02.csv\nMoved: SPY_5min_2023_03.csv\nMoved: SPY_5min_2023_04.csv\nMoved: SPY_5min_2023_05.csv\nMoved: SPY_5min_2023_06.csv\nMoved: SPY_5min_2023_07.csv\nMoved: SPY_5min_2023_08.csv\nMoved: SPY_5min_2023_09.csv\nMoved: SPY_5min_2023_10.csv\nMoved: SPY_5min_2023_11.csv\nMoved: SPY_5min_2023_12.csv\nMoved: SPY_5min_2024_01.csv\nMoved: SPY_5min_2024_02.csv\nMoved: SPY_5min_2024_03.csv\nMoved: SPY_5min_2024_04.csv\nMoved: SPY_5min_2024_05.csv\nMoved: SPY_5min_2024_06.csv\nMoved: SPY_5min_2024_07.csv\nMoved: SPY_5min_2024_08.csv\nMoved: SPY_5min_2024_09.csv\nMoved: SPY_5min_2024_10.csv\nMoved: SPY_5min_2024_11.csv\nMoved: SPY_5min_2024_12.csv\nMoved: SPY_5min_2025_01.csv\nMoved: SPY_5min_2025_02.csv\nMoved: SPY_5min_2025_03.csv\nMoved: SPY_5min_2025_04.csv\nMoved: SPY_5min_full.csv\nAll matching files moved successfully.\n"
+        }
+      ],
+      "execution_count": 35,
+      "metadata": {
+        "gather": {
+          "logged": 1746852735052
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import os\n",
+        "\n",
+        "# Define path to raw data folder\n",
+        "raw_data_path = \"/mnt/batch/tasks/shared/LS_root/mounts/clusters/arisgkourelas1/code/Users/arisgkourelas/SPY_Model/data/raw\"\n",
+        "\n",
+        "# List files\n",
+        "files = os.listdir(raw_data_path)\n",
+        "print(\"Files in raw data folder:\")\n",
+        "for f in files:\n",
+        "    print(f)"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Files in raw data folder:\nSPY_5min_2020_05.csv\nSPY_5min_2020_06.csv\nSPY_5min_2020_07.csv\nSPY_5min_2020_08.csv\nSPY_5min_2020_09.csv\nSPY_5min_2020_10.csv\nSPY_5min_2020_11.csv\nSPY_5min_2020_12.csv\nSPY_5min_2021_01.csv\nSPY_5min_2021_02.csv\nSPY_5min_2021_03.csv\nSPY_5min_2021_04.csv\nSPY_5min_2021_05.csv\nSPY_5min_2021_06.csv\nSPY_5min_2021_07.csv\nSPY_5min_2021_08.csv\nSPY_5min_2021_09.csv\nSPY_5min_2021_10.csv\nSPY_5min_2021_11.csv\nSPY_5min_2021_12.csv\nSPY_5min_2022_01.csv\nSPY_5min_2022_02.csv\nSPY_5min_2022_03.csv\nSPY_5min_2022_04.csv\nSPY_5min_2022_05.csv\nSPY_5min_2022_06.csv\nSPY_5min_2022_07.csv\nSPY_5min_2022_08.csv\nSPY_5min_2022_09.csv\nSPY_5min_2022_10.csv\nSPY_5min_2022_11.csv\nSPY_5min_2022_12.csv\nSPY_5min_2023_01.csv\nSPY_5min_2023_02.csv\nSPY_5min_2023_03.csv\nSPY_5min_2023_04.csv\nSPY_5min_2023_05.csv\nSPY_5min_2023_06.csv\nSPY_5min_2023_07.csv\nSPY_5min_2023_08.csv\nSPY_5min_2023_09.csv\nSPY_5min_2023_10.csv\nSPY_5min_2023_11.csv\nSPY_5min_2023_12.csv\nSPY_5min_2024_01.csv\nSPY_5min_2024_02.csv\nSPY_5min_2024_03.csv\nSPY_5min_2024_04.csv\nSPY_5min_2024_05.csv\nSPY_5min_2024_06.csv\nSPY_5min_2024_07.csv\nSPY_5min_2024_08.csv\nSPY_5min_2024_09.csv\nSPY_5min_2024_10.csv\nSPY_5min_2024_11.csv\nSPY_5min_2024_12.csv\nSPY_5min_2025_01.csv\nSPY_5min_2025_02.csv\nSPY_5min_2025_03.csv\nSPY_5min_2025_04.csv\nSPY_5min_full.csv\n"
+        }
+      ],
+      "execution_count": 36,
+      "metadata": {
+        "gather": {
+          "logged": 1746852817494
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import os\n",
+        "print(os.getcwd())"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "/mnt/batch/tasks/shared/LS_root/mounts/clusters/arisgkourelas1/code/Users/arisgkourelas/SPY_Model\n"
+        }
+      ],
+      "execution_count": 32,
+      "metadata": {
+        "gather": {
+          "logged": 1746852617534
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 2: Load and concatenate CSV data\n",
+        "import os\n",
+        "from glob import glob\n",
+        "\n",
+        "# Replace with the folder where your CSVs are stored\n",
+        "data_folder = \".\"\n",
+        "\n",
+        "# Grab all CSVs in that folder\n",
+        "csv_files = sorted(glob(os.path.join(data_folder, \"*.csv\")))\n",
+        "\n",
+        "# Read and concatenate all CSVs\n",
+        "all_data = pd.concat([pd.read_csv(file) for file in csv_files], ignore_index=True)\n",
+        "\n",
+        "# Convert timestamp to datetime\n",
+        "all_data[\"timestamp\"] = pd.to_datetime(all_data[\"timestamp\"])\n",
+        "\n",
+        "# Sort just in case\n",
+        "all_data = all_data.sort_values(\"timestamp\").reset_index(drop=True)\n",
+        "\n",
+        "print(\"Data loaded:\", all_data[\"timestamp\"].min(), \"to\", all_data[\"timestamp\"].max())"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Data loaded: 2020-05-11 08:00:00 to 2025-05-01 23:55:00\n"
+        }
+      ],
+      "execution_count": 14,
+      "metadata": {
+        "gather": {
+          "logged": 1746851383688
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 3: Build daily rows with 9:30 and 9:35 close prices\n",
+        "daily_rows = []\n",
+        "\n",
+        "# Group by date\n",
+        "for date, group in all_data.groupby(all_data[\"timestamp\"].dt.date):\n",
+        "    group = group.sort_values(\"timestamp\")\n",
+        "\n",
+        "    open_row = group[group[\"timestamp\"].dt.time == pd.to_datetime(\"09:30\").time()]\n",
+        "    after_5min_row = group[group[\"timestamp\"].dt.time == pd.to_datetime(\"09:35\").time()]\n",
+        "\n",
+        "    if not open_row.empty and not after_5min_row.empty:\n",
+        "        row = {\n",
+        "            \"date\": pd.to_datetime(date),\n",
+        "            \"close_930\": open_row.iloc[0][\"close\"],\n",
+        "            \"close_935\": after_5min_row.iloc[0][\"close\"],\n",
+        "            \"volume\": after_5min_row.iloc[0][\"volume\"]\n",
+        "        }\n",
+        "        daily_rows.append(row)\n",
+        "\n",
+        "model_df = pd.DataFrame(daily_rows)\n",
+        "print(\"Built daily model_df:\", model_df.shape)"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Built daily model_df: (1111, 4)\n"
+        }
+      ],
+      "execution_count": 15,
+      "metadata": {
+        "gather": {
+          "logged": 1746851388942
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from pandas.tseries.holiday import USFederalHolidayCalendar\n",
+        "\n",
+        "# Start from model_df created in Block 3\n",
+        "model_df[\"date\"] = pd.to_datetime(model_df[\"date\"])\n",
+        "\n",
+        "# Calendar features\n",
+        "model_df[\"day_of_week\"] = model_df[\"date\"].dt.weekday\n",
+        "model_df[\"is_monday\"] = (model_df[\"day_of_week\"] == 0).astype(int)\n",
+        "model_df[\"is_friday\"] = (model_df[\"day_of_week\"] == 4).astype(int)\n",
+        "model_df[\"month\"] = model_df[\"date\"].dt.month\n",
+        "model_df[\"year\"] = model_df[\"date\"].dt.year\n",
+        "model_df[\"quarter\"] = model_df[\"date\"].dt.quarter\n",
+        "model_df[\"is_month_start\"] = model_df[\"date\"].dt.is_month_start.astype(int)\n",
+        "model_df[\"is_month_end\"] = model_df[\"date\"].dt.is_month_end.astype(int)\n",
+        "model_df[\"is_quarter_start\"] = model_df[\"date\"].dt.is_quarter_start.astype(int)\n",
+        "model_df[\"is_quarter_end\"] = model_df[\"date\"].dt.is_quarter_end.astype(int)\n",
+        "\n",
+        "# Season feature\n",
+        "def get_season(month):\n",
+        "    if month in [12, 1, 2]: return \"Winter\"\n",
+        "    elif month in [3, 4, 5]: return \"Spring\"\n",
+        "    elif month in [6, 7, 8]: return \"Summer\"\n",
+        "    else: return \"Fall\"\n",
+        "\n",
+        "model_df[\"season\"] = model_df[\"month\"].apply(get_season)\n",
+        "model_df = pd.get_dummies(model_df, columns=[\"season\"], prefix=\"season\")\n",
+        "\n",
+        "# Holiday features\n",
+        "cal = USFederalHolidayCalendar()\n",
+        "holidays = cal.holidays(start=model_df[\"date\"].min(), end=model_df[\"date\"].max())\n",
+        "model_df[\"is_holiday\"] = model_df[\"date\"].isin(holidays).astype(int)\n",
+        "model_df[\"prev_day\"] = model_df[\"date\"] - pd.Timedelta(days=1)\n",
+        "model_df[\"is_after_holiday\"] = model_df[\"prev_day\"].isin(holidays).astype(int)\n",
+        "\n",
+        "# First trading day of the month\n",
+        "first_of_month = model_df.groupby(model_df[\"date\"].dt.to_period(\"M\"))[\"date\"].min().values\n",
+        "model_df[\"is_first_trading_day\"] = model_df[\"date\"].isin(first_of_month).astype(int)\n",
+        "\n",
+        "# Target: Did price go up between 9:30 and 9:35?\n",
+        "model_df[\"went_up\"] = (model_df[\"close_935\"] > model_df[\"close_930\"]).astype(int)\n",
+        "\n",
+        "# Print result\n",
+        "print(\"Calendar features added. Columns now:\", model_df.columns.tolist())"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Calendar features added. Columns now: ['date', 'close_930', 'close_935', 'volume', 'day_of_week', 'is_monday', 'is_friday', 'month', 'year', 'quarter', 'is_month_start', 'is_month_end', 'is_quarter_start', 'is_quarter_end', 'season_Fall', 'season_Spring', 'season_Summer', 'season_Winter', 'is_holiday', 'prev_day', 'is_after_holiday', 'is_first_trading_day', 'went_up']\n"
+        }
+      ],
+      "execution_count": 16,
+      "metadata": {
+        "gather": {
+          "logged": 1746851391158
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 5: Add Previous Day Features\n",
+        "\n",
+        "# Step 1: Create previous day reference\n",
+        "model_df[\"prev_day\"] = model_df[\"date\"].shift(1)\n",
+        "\n",
+        "# Step 2: Create a DataFrame with previous day's open and close\n",
+        "df_prev = model_df[[\"date\", \"close_930\"]].copy()\n",
+        "df_prev.columns = [\"prev_day\", \"prev_day_open\"]\n",
+        "\n",
+        "df_prev[\"prev_day_close\"] = model_df[\"close_935\"].shift(1).values\n",
+        "\n",
+        "# Step 3: Merge previous day data\n",
+        "model_df = pd.merge(model_df, df_prev, on=\"prev_day\", how=\"left\")\n",
+        "\n",
+        "# Step 4: Create previous day return\n",
+        "model_df[\"prev_day_return\"] = (\n",
+        "    (model_df[\"prev_day_close\"] - model_df[\"prev_day_open\"]) / model_df[\"prev_day_open\"]\n",
+        ")\n",
+        "\n",
+        "# Step 5: Drop early NaNs\n",
+        "model_df = model_df.dropna(subset=[\"prev_day_return\"]).reset_index(drop=True)\n",
+        "\n",
+        "# Confirm columns\n",
+        "print(\"Columns after adding prev day features:\", model_df.columns.tolist())"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Columns after adding prev day features: ['date', 'close_930', 'close_935', 'volume', 'day_of_week', 'is_monday', 'is_friday', 'month', 'year', 'quarter', 'is_month_start', 'is_month_end', 'is_quarter_start', 'is_quarter_end', 'season_Fall', 'season_Spring', 'season_Summer', 'season_Winter', 'is_holiday', 'prev_day', 'is_after_holiday', 'is_first_trading_day', 'went_up', 'prev_day_open', 'prev_day_close', 'prev_day_return']\n"
+        }
+      ],
+      "execution_count": 17,
+      "metadata": {
+        "gather": {
+          "logged": 1746851394836
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 6: Add Technical Indicators\n",
+        "\n",
+        "def add_technical_indicators(df):\n",
+        "    # RSI\n",
+        "    delta = df[\"close_935\"].diff()\n",
+        "    gain = delta.where(delta > 0, 0)\n",
+        "    loss = -delta.where(delta < 0, 0)\n",
+        "    avg_gain = gain.rolling(window=14).mean()\n",
+        "    avg_loss = loss.rolling(window=14).mean()\n",
+        "    rs = avg_gain / avg_loss\n",
+        "    df[\"rsi_14\"] = 100 - (100 / (1 + rs))\n",
+        "\n",
+        "    # SMA and ratios\n",
+        "    df[\"sma_5\"] = df[\"close_935\"].rolling(window=5).mean()\n",
+        "    df[\"sma_20\"] = df[\"close_935\"].rolling(window=20).mean()\n",
+        "    df[\"sma_ratio\"] = df[\"sma_5\"] / df[\"sma_20\"]\n",
+        "    df[\"sma_distance\"] = (df[\"close_935\"] - df[\"sma_20\"]) / df[\"sma_20\"]\n",
+        "\n",
+        "    # Volatility\n",
+        "    df[\"prior_volatility\"] = df[\"close_930\"].rolling(window=5).std()\n",
+        "\n",
+        "    # Bollinger Bands\n",
+        "    df[\"bb_middle\"] = df[\"sma_20\"]\n",
+        "    df[\"bb_std\"] = df[\"close_935\"].rolling(window=20).std()\n",
+        "    df[\"bb_upper\"] = df[\"bb_middle\"] + 2 * df[\"bb_std\"]\n",
+        "    df[\"bb_lower\"] = df[\"bb_middle\"] - 2 * df[\"bb_std\"]\n",
+        "    df[\"bollinger_width\"] = (df[\"bb_upper\"] - df[\"bb_lower\"]) / df[\"bb_middle\"]\n",
+        "    df[\"bollinger_position\"] = (df[\"close_935\"] - df[\"bb_lower\"]) / (df[\"bb_upper\"] - df[\"bb_lower\"])\n",
+        "\n",
+        "    # MACD\n",
+        "    ema12 = df[\"close_935\"].ewm(span=12, adjust=False).mean()\n",
+        "    ema26 = df[\"close_935\"].ewm(span=26, adjust=False).mean()\n",
+        "    df[\"macd\"] = ema12 - ema26\n",
+        "    df[\"macd_signal\"] = df[\"macd\"].ewm(span=9, adjust=False).mean()\n",
+        "    df[\"macd_diff\"] = df[\"macd\"] - df[\"macd_signal\"]\n",
+        "\n",
+        "    # Overnight gap\n",
+        "    df[\"overnight_gap\"] = (df[\"close_930\"] - df[\"prev_day_close\"]) / df[\"prev_day_close\"]\n",
+        "\n",
+        "    # Previous day movement\n",
+        "    df[\"prev_day_change\"] = (df[\"prev_day_close\"] - df[\"prev_day_open\"]) / df[\"prev_day_open\"]\n",
+        "    df[\"prev_day_range_pct\"] = (df[\"prev_day_close\"] - df[\"prev_day_open\"]).abs() / df[\"prev_day_open\"]\n",
+        "\n",
+        "    return df\n",
+        "\n",
+        "model_df = add_technical_indicators(model_df)\n",
+        "model_df = model_df.dropna().reset_index(drop=True)\n",
+        "\n",
+        "print(\"Technical indicators added. Columns now:\", model_df.columns.tolist())"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Technical indicators added. Columns now: ['date', 'close_930', 'close_935', 'volume', 'day_of_week', 'is_monday', 'is_friday', 'month', 'year', 'quarter', 'is_month_start', 'is_month_end', 'is_quarter_start', 'is_quarter_end', 'season_Fall', 'season_Spring', 'season_Summer', 'season_Winter', 'is_holiday', 'prev_day', 'is_after_holiday', 'is_first_trading_day', 'went_up', 'prev_day_open', 'prev_day_close', 'prev_day_return', 'rsi_14', 'sma_5', 'sma_20', 'sma_ratio', 'sma_distance', 'prior_volatility', 'bb_middle', 'bb_std', 'bb_upper', 'bb_lower', 'bollinger_width', 'bollinger_position', 'macd', 'macd_signal', 'macd_diff', 'overnight_gap', 'prev_day_change', 'prev_day_range_pct']\n"
+        }
+      ],
+      "execution_count": 18,
+      "metadata": {
+        "gather": {
+          "logged": 1746851397659
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Construct df_engineered with everything from the current model_df\n",
+        "df_engineered = model_df.copy()\n",
+        "\n",
+        "# Confirm that all expected features are present\n",
+        "print(\"Engineered columns:\", df_engineered.columns.tolist())"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Engineered columns: ['date', 'close_930', 'close_935', 'volume', 'day_of_week', 'is_monday', 'is_friday', 'month', 'year', 'quarter', 'is_month_start', 'is_month_end', 'is_quarter_start', 'is_quarter_end', 'season_Fall', 'season_Spring', 'season_Summer', 'season_Winter', 'is_holiday', 'prev_day', 'is_after_holiday', 'is_first_trading_day', 'went_up', 'prev_day_open', 'prev_day_close', 'prev_day_return', 'rsi_14', 'sma_5', 'sma_20', 'sma_ratio', 'sma_distance', 'prior_volatility', 'bb_middle', 'bb_std', 'bb_upper', 'bb_lower', 'bollinger_width', 'bollinger_position', 'macd', 'macd_signal', 'macd_diff', 'overnight_gap', 'prev_day_change', 'prev_day_range_pct']\n"
+        }
+      ],
+      "execution_count": 19,
+      "metadata": {
+        "gather": {
+          "logged": 1746851401108
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 7: Filter full_df to 9:30 and 9:35 rows only\n",
+        "\n",
+        "full_df = all_data.copy()\n",
+        "full_df[\"time\"] = full_df[\"timestamp\"].dt.strftime(\"%H:%M\")\n",
+        "full_df = full_df[full_df[\"time\"].isin([\"09:30\", \"09:35\"])].reset_index(drop=True)\n",
+        "full_df[\"date\"] = full_df[\"timestamp\"].dt.date  # add date column if not already\n",
+        "full_df = full_df.drop(columns=[\"time\"])  # optional: drop time column\n",
+        "\n",
+        "print(\"Filtered to 9:30 and 9:35 AM rows only:\", full_df.shape)"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Filtered to 9:30 and 9:35 AM rows only: (4856, 38)\n"
+        }
+      ],
+      "execution_count": 20,
+      "metadata": {
+        "gather": {
+          "logged": 1746851405104
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "model_df[\"date\"] = pd.to_datetime(model_df[\"date\"])\n",
+        "full_df[\"date\"] = pd.to_datetime(full_df[\"date\"])"
+      ],
+      "outputs": [],
+      "execution_count": 21,
+      "metadata": {
+        "gather": {
+          "logged": 1746851406689
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Step 0: Extract date and time early\n",
+        "full_df[\"date\"] = pd.to_datetime(full_df[\"timestamp\"]).dt.date\n",
+        "full_df[\"time\"] = pd.to_datetime(full_df[\"timestamp\"]).dt.strftime(\"%H:%M\")\n",
+        "\n",
+        "# Step 1: Compute volume stats on 09:35 rows\n",
+        "volume_df = full_df[full_df[\"time\"] == \"09:35\"].copy()\n",
+        "volume_df = volume_df.sort_values(\"timestamp\")\n",
+        "\n",
+        "# Step 2: Rolling calculations\n",
+        "volume_df[\"volume_5day_avg\"] = volume_df[\"volume\"].rolling(window=5).mean()\n",
+        "volume_df[\"volume_5day_ratio\"] = volume_df[\"volume\"] / volume_df[\"volume_5day_avg\"]\n",
+        "\n",
+        "# Step 3: Create model_df and keep valid dates\n",
+        "model_df = volume_df.dropna(subset=[\"volume_5day_avg\", \"volume_5day_ratio\"]).reset_index(drop=True)\n",
+        "\n",
+        "# DEBUG check\n",
+        "print(\"model_df['date'] sample after processing:\\n\", model_df[\"date\"].head())\n",
+        "print(\"Unique dates in model_df:\", model_df[\"date\"].nunique())"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "model_df['date'] sample after processing:\n 0    2020-05-14\n1    2020-05-14\n2    2020-05-15\n3    2020-05-15\n4    2020-05-18\nName: date, dtype: object\nUnique dates in model_df: 1166\n"
+        }
+      ],
+      "execution_count": 27,
+      "metadata": {
+        "gather": {
+          "logged": 1746851615411
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "print(\"df_engineered columns:\", df_engineered.columns.tolist())"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "df_engineered columns: ['date', 'close_930', 'close_935', 'volume', 'day_of_week', 'is_monday', 'is_friday', 'month', 'year', 'quarter', 'is_month_start', 'is_month_end', 'is_quarter_start', 'is_quarter_end', 'season_Fall', 'season_Spring', 'season_Summer', 'season_Winter', 'is_holiday', 'prev_day', 'is_after_holiday', 'is_first_trading_day', 'went_up', 'prev_day_open', 'prev_day_close', 'prev_day_return', 'rsi_14', 'sma_5', 'sma_20', 'sma_ratio', 'sma_distance', 'prior_volatility', 'bb_middle', 'bb_std', 'bb_upper', 'bb_lower', 'bollinger_width', 'bollinger_position', 'macd', 'macd_signal', 'macd_diff', 'overnight_gap', 'prev_day_change', 'prev_day_range_pct']\n"
+        }
+      ],
+      "execution_count": 28,
+      "metadata": {
+        "gather": {
+          "logged": 1746851618338
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "print(\"model_df['date'] sample:\", model_df[\"date\"].head())\n",
+        "print(\"df_engineered['date'] sample:\", df_engineered[\"date\"].head())\n",
+        "print(\"Unique dates in model_df:\", model_df[\"date\"].nunique())\n",
+        "print(\"Unique dates in df_engineered:\", df_engineered[\"date\"].nunique())\n",
+        "print(\"Common dates:\", pd.Series(np.intersect1d(model_df['date'], df_engineered['date'])).head())"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "model_df['date'] sample: 0    2020-05-14\n1    2020-05-14\n2    2020-05-15\n3    2020-05-15\n4    2020-05-18\nName: date, dtype: object\ndf_engineered['date'] sample: 0   2020-06-11\n1   2020-06-12\n2   2020-06-15\n3   2020-06-16\n4   2020-06-17\nName: date, dtype: datetime64[ns]\nUnique dates in model_df: 1166\nUnique dates in df_engineered: 1090\n"
+        },
+        {
+          "output_type": "error",
+          "ename": "TypeError",
+          "evalue": "'<' not supported between instances of 'int' and 'datetime.date'",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
+            "Cell \u001b[0;32mIn[29], line 5\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[38;5;28mprint\u001b[39m(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mUnique dates in model_df:\u001b[39m\u001b[38;5;124m\"\u001b[39m, model_df[\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mdate\u001b[39m\u001b[38;5;124m\"\u001b[39m]\u001b[38;5;241m.\u001b[39mnunique())\n\u001b[1;32m      4\u001b[0m \u001b[38;5;28mprint\u001b[39m(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mUnique dates in df_engineered:\u001b[39m\u001b[38;5;124m\"\u001b[39m, df_engineered[\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mdate\u001b[39m\u001b[38;5;124m\"\u001b[39m]\u001b[38;5;241m.\u001b[39mnunique())\n\u001b[0;32m----> 5\u001b[0m \u001b[38;5;28mprint\u001b[39m(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mCommon dates:\u001b[39m\u001b[38;5;124m\"\u001b[39m, pd\u001b[38;5;241m.\u001b[39mSeries(\u001b[43mnp\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mintersect1d\u001b[49m\u001b[43m(\u001b[49m\u001b[43mmodel_df\u001b[49m\u001b[43m[\u001b[49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[38;5;124;43mdate\u001b[39;49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[43m]\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mdf_engineered\u001b[49m\u001b[43m[\u001b[49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[38;5;124;43mdate\u001b[39;49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[43m]\u001b[49m\u001b[43m)\u001b[49m)\u001b[38;5;241m.\u001b[39mhead())\n",
+            "File \u001b[0;32m<__array_function__ internals>:180\u001b[0m, in \u001b[0;36mintersect1d\u001b[0;34m(*args, **kwargs)\u001b[0m\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py38/lib/python3.10/site-packages/numpy/lib/arraysetops.py:455\u001b[0m, in \u001b[0;36mintersect1d\u001b[0;34m(ar1, ar2, assume_unique, return_indices)\u001b[0m\n\u001b[1;32m    453\u001b[0m     aux \u001b[38;5;241m=\u001b[39m aux[aux_sort_indices]\n\u001b[1;32m    454\u001b[0m \u001b[38;5;28;01melse\u001b[39;00m:\n\u001b[0;32m--> 455\u001b[0m     \u001b[43maux\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43msort\u001b[49m\u001b[43m(\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    457\u001b[0m mask \u001b[38;5;241m=\u001b[39m aux[\u001b[38;5;241m1\u001b[39m:] \u001b[38;5;241m==\u001b[39m aux[:\u001b[38;5;241m-\u001b[39m\u001b[38;5;241m1\u001b[39m]\n\u001b[1;32m    458\u001b[0m int1d \u001b[38;5;241m=\u001b[39m aux[:\u001b[38;5;241m-\u001b[39m\u001b[38;5;241m1\u001b[39m][mask]\n",
+            "\u001b[0;31mTypeError\u001b[0m: '<' not supported between instances of 'int' and 'datetime.date'"
+          ]
+        }
+      ],
+      "execution_count": 29,
+      "metadata": {
+        "gather": {
+          "logged": 1746851621282
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 9: Merge engineered features into 09:35 filtered model_df\n",
+        "\n",
+        "# Step 1: Define all engineered columns we want to keep\n",
+        "calendar_and_tech_cols = [\n",
+        "    \"date\", \"close_930\", \"close_935\", \"day_of_week\", \"is_monday\", \"is_friday\",\n",
+        "    \"month\", \"year\", \"quarter\", \"is_month_start\", \"is_month_end\",\n",
+        "    \"is_quarter_start\", \"is_quarter_end\", \"season_Winter\", \"season_Spring\",\n",
+        "    \"season_Summer\", \"season_Fall\", \"is_holiday\", \"is_after_holiday\",\n",
+        "    \"is_first_trading_day\", \"went_up\", \"prev_day\", \"prev_day_open\",\n",
+        "    \"prev_day_close\", \"prev_day_return\", \"rsi_14\", \"sma_5\", \"sma_20\",\n",
+        "    \"sma_ratio\", \"sma_distance\", \"prior_volatility\", \"bb_middle\", \"bb_std\",\n",
+        "    \"bb_upper\", \"bb_lower\", \"bollinger_width\", \"bollinger_position\",\n",
+        "    \"macd\", \"macd_signal\", \"macd_diff\", \"overnight_gap\",\n",
+        "    \"prev_day_change\", \"prev_day_range_pct\"\n",
+        "]\n",
+        "\n",
+        "# Step 2: Merge the engineered feature data into model_df (which is 09:35 rows only)\n",
+        "model_df[\"date\"] = pd.to_datetime(model_df[\"date\"])\n",
+        "df_engineered[\"date\"] = pd.to_datetime(df_engineered[\"date\"])  # ensure matching dtypes\n",
+        "\n",
+        "model_df = pd.merge(\n",
+        "    model_df,\n",
+        "    df_engineered[calendar_and_tech_cols],\n",
+        "    on=\"date\",\n",
+        "    how=\"left\"\n",
+        ")\n",
+        "\n",
+        "# Step 3: Drop rows with missing values\n",
+        "model_df = model_df.dropna().reset_index(drop=True)\n",
+        "\n",
+        "print(\"Final model_df shape after merge:\", model_df.shape)"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Final model_df shape after merge: (0, 82)\n"
+        }
+      ],
+      "execution_count": 30,
+      "metadata": {
+        "gather": {
+          "logged": 1746851642174
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Block 10\n",
+        "# Step 1: Choose refined feature set\n",
+        "refined_features = [\n",
+        "    \"is_quarter_start\", \"is_month_start\", \"is_quarter_end\", \"is_month_end\",\n",
+        "    \"day_of_week\", \"month\", \"year\", \"season_Winter\", \"season_Spring\",\n",
+        "    \"season_Summer\", \"season_Fall\", \"is_holiday\", \"is_after_holiday\",\n",
+        "    \"is_first_trading_day\", \"overnight_gap\", \"sma_ratio\", \"sma_distance\",\n",
+        "    \"prior_volatility\", \"rsi_14\", \"bollinger_width\", \"bollinger_position\",\n",
+        "    \"macd_diff\", \"prev_day_change\", \"prev_day_range_pct\", \"volume_5day_ratio\"\n",
+        "]\n",
+        "\n",
+        "# Step 2: Filter model_df to include only selected features + target\n",
+        "model_df_final = model_df[refined_features + [\"went_up\"]].dropna()\n",
+        "\n",
+        "# Step 3: Create X (features) and y (target)\n",
+        "X = model_df_final[refined_features]\n",
+        "y = model_df_final[\"went_up\"]\n",
+        "\n",
+        "# Step 4: Train/test split (by date order, 80/20)\n",
+        "split_index = int(len(model_df_final) * 0.8)\n",
+        "X_train, X_test = X.iloc[:split_index], X.iloc[split_index:]\n",
+        "y_train, y_test = y.iloc[:split_index], y.iloc[split_index:]\n",
+        "\n",
+        "# Preview\n",
+        "print(f\"Train size: {len(X_train)}, Test size: {len(X_test)}\")"
+      ],
+      "outputs": [
+        {
+          "output_type": "error",
+          "ename": "KeyError",
+          "evalue": "\"['is_quarter_start', 'is_month_start', 'is_quarter_end', 'is_month_end', 'day_of_week', 'month', 'year', 'season_Winter', 'season_Spring', 'season_Summer', 'season_Fall', 'is_holiday', 'is_after_holiday', 'is_first_trading_day', 'overnight_gap', 'sma_ratio', 'sma_distance', 'prior_volatility', 'rsi_14', 'bollinger_width', 'bollinger_position', 'macd_diff', 'prev_day_change', 'prev_day_range_pct', 'went_up'] not in index\"",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mKeyError\u001b[0m                                  Traceback (most recent call last)",
+            "Cell \u001b[0;32mIn[31], line 13\u001b[0m\n\u001b[1;32m      3\u001b[0m refined_features \u001b[38;5;241m=\u001b[39m [\n\u001b[1;32m      4\u001b[0m     \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mis_quarter_start\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mis_month_start\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mis_quarter_end\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mis_month_end\u001b[39m\u001b[38;5;124m\"\u001b[39m,\n\u001b[1;32m      5\u001b[0m     \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mday_of_week\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mmonth\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124myear\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mseason_Winter\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mseason_Spring\u001b[39m\u001b[38;5;124m\"\u001b[39m,\n\u001b[0;32m   (...)\u001b[0m\n\u001b[1;32m      9\u001b[0m     \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mmacd_diff\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mprev_day_change\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mprev_day_range_pct\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mvolume_5day_ratio\u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m     10\u001b[0m ]\n\u001b[1;32m     12\u001b[0m \u001b[38;5;66;03m# Step 2: Filter model_df to include only selected features + target\u001b[39;00m\n\u001b[0;32m---> 13\u001b[0m model_df_final \u001b[38;5;241m=\u001b[39m \u001b[43mmodel_df\u001b[49m\u001b[43m[\u001b[49m\u001b[43mrefined_features\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m+\u001b[39;49m\u001b[43m \u001b[49m\u001b[43m[\u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mwent_up\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m]\u001b[49m\u001b[43m]\u001b[49m\u001b[38;5;241m.\u001b[39mdropna()\n\u001b[1;32m     15\u001b[0m \u001b[38;5;66;03m# Step 3: Create X (features) and y (target)\u001b[39;00m\n\u001b[1;32m     16\u001b[0m X \u001b[38;5;241m=\u001b[39m model_df_final[refined_features]\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py38/lib/python3.10/site-packages/pandas/core/frame.py:3813\u001b[0m, in \u001b[0;36mDataFrame.__getitem__\u001b[0;34m(self, key)\u001b[0m\n\u001b[1;32m   3811\u001b[0m     \u001b[38;5;28;01mif\u001b[39;00m is_iterator(key):\n\u001b[1;32m   3812\u001b[0m         key \u001b[38;5;241m=\u001b[39m \u001b[38;5;28mlist\u001b[39m(key)\n\u001b[0;32m-> 3813\u001b[0m     indexer \u001b[38;5;241m=\u001b[39m \u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mcolumns\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43m_get_indexer_strict\u001b[49m\u001b[43m(\u001b[49m\u001b[43mkey\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mcolumns\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m)\u001b[49m[\u001b[38;5;241m1\u001b[39m]\n\u001b[1;32m   3815\u001b[0m \u001b[38;5;66;03m# take() does not accept boolean indexers\u001b[39;00m\n\u001b[1;32m   3816\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mgetattr\u001b[39m(indexer, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mdtype\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;28;01mNone\u001b[39;00m) \u001b[38;5;241m==\u001b[39m \u001b[38;5;28mbool\u001b[39m:\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py38/lib/python3.10/site-packages/pandas/core/indexes/base.py:6070\u001b[0m, in \u001b[0;36mIndex._get_indexer_strict\u001b[0;34m(self, key, axis_name)\u001b[0m\n\u001b[1;32m   6067\u001b[0m \u001b[38;5;28;01melse\u001b[39;00m:\n\u001b[1;32m   6068\u001b[0m     keyarr, indexer, new_indexer \u001b[38;5;241m=\u001b[39m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39m_reindex_non_unique(keyarr)\n\u001b[0;32m-> 6070\u001b[0m \u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43m_raise_if_missing\u001b[49m\u001b[43m(\u001b[49m\u001b[43mkeyarr\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mindexer\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43maxis_name\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m   6072\u001b[0m keyarr \u001b[38;5;241m=\u001b[39m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mtake(indexer)\n\u001b[1;32m   6073\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28misinstance\u001b[39m(key, Index):\n\u001b[1;32m   6074\u001b[0m     \u001b[38;5;66;03m# GH 42790 - Preserve name from an Index\u001b[39;00m\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py38/lib/python3.10/site-packages/pandas/core/indexes/base.py:6133\u001b[0m, in \u001b[0;36mIndex._raise_if_missing\u001b[0;34m(self, key, indexer, axis_name)\u001b[0m\n\u001b[1;32m   6130\u001b[0m     \u001b[38;5;28;01mraise\u001b[39;00m \u001b[38;5;167;01mKeyError\u001b[39;00m(\u001b[38;5;124mf\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mNone of [\u001b[39m\u001b[38;5;132;01m{\u001b[39;00mkey\u001b[38;5;132;01m}\u001b[39;00m\u001b[38;5;124m] are in the [\u001b[39m\u001b[38;5;132;01m{\u001b[39;00maxis_name\u001b[38;5;132;01m}\u001b[39;00m\u001b[38;5;124m]\u001b[39m\u001b[38;5;124m\"\u001b[39m)\n\u001b[1;32m   6132\u001b[0m not_found \u001b[38;5;241m=\u001b[39m \u001b[38;5;28mlist\u001b[39m(ensure_index(key)[missing_mask\u001b[38;5;241m.\u001b[39mnonzero()[\u001b[38;5;241m0\u001b[39m]]\u001b[38;5;241m.\u001b[39munique())\n\u001b[0;32m-> 6133\u001b[0m \u001b[38;5;28;01mraise\u001b[39;00m \u001b[38;5;167;01mKeyError\u001b[39;00m(\u001b[38;5;124mf\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;132;01m{\u001b[39;00mnot_found\u001b[38;5;132;01m}\u001b[39;00m\u001b[38;5;124m not in index\u001b[39m\u001b[38;5;124m\"\u001b[39m)\n",
+            "\u001b[0;31mKeyError\u001b[0m: \"['is_quarter_start', 'is_month_start', 'is_quarter_end', 'is_month_end', 'day_of_week', 'month', 'year', 'season_Winter', 'season_Spring', 'season_Summer', 'season_Fall', 'is_holiday', 'is_after_holiday', 'is_first_trading_day', 'overnight_gap', 'sma_ratio', 'sma_distance', 'prior_volatility', 'rsi_14', 'bollinger_width', 'bollinger_position', 'macd_diff', 'prev_day_change', 'prev_day_range_pct', 'went_up'] not in index\""
+          ]
+        }
+      ],
+      "execution_count": 31,
+      "metadata": {
+        "gather": {
+          "logged": 1746852516312
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from xgboost import XGBClassifier\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "\n",
+        "# Step 1: Train model\n",
+        "model = XGBClassifier(eval_metric=\"logloss\", random_state=42, use_label_encoder=False)\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "# Step 2: Predict on test set\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "# Step 3: Calculate accuracy\n",
+        "accuracy = accuracy_score(y_test, y_pred)\n",
+        "print(f\"Test Accuracy: {accuracy:.4f}\")\n",
+        "\n",
+        "# Step 4: Calculate win rate (precision on predicted 'went_up' = 1)\n",
+        "predicted_ups = (y_pred == 1)\n",
+        "actual_ups = (y_test == 1)\n",
+        "if predicted_ups.sum() > 0:\n",
+        "    win_rate = (y_pred[predicted_ups] == y_test[predicted_ups]).mean()\n",
+        "    print(f\"Win Rate on Predicted 'Buy' Days: {win_rate:.4f}\")\n",
+        "else:\n",
+        "    print(\"No 'went_up' predictions to evaluate win rate.\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263544
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 12: Confidence-Based Predictions with Probabilities\n",
+        "\n",
+        "from xgboost import XGBClassifier\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "\n",
+        "# Step 1: Retrain model with probability support\n",
+        "model = XGBClassifier(eval_metric=\"logloss\", use_label_encoder=False, random_state=42)\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "# Step 2: Predict probabilities on test set\n",
+        "probs = model.predict_proba(X_test)[:, 1]  # probability went_up = 1\n",
+        "\n",
+        "# Step 3: Define threshold for confidence\n",
+        "threshold = 0.70\n",
+        "\n",
+        "# Step 4: Filter predictions with high confidence\n",
+        "confident_indices = (probs >= threshold) | (probs <= (1 - threshold))\n",
+        "confident_preds = (probs[confident_indices] >= threshold).astype(int)\n",
+        "confident_truths = y_test.iloc[confident_indices]\n",
+        "\n",
+        "# Step 5: Evaluate\n",
+        "confident_accuracy = accuracy_score(confident_truths, confident_preds)\n",
+        "print(f\"Confidence threshold: {threshold}\")\n",
+        "print(f\"Decisions made: {len(confident_preds)} / {len(y_test)}\")\n",
+        "print(f\"Accuracy on confident predictions: {confident_accuracy:.4f}\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263560
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 13: Save confident predictions\n",
+        "\n",
+        "# Get dates for the test set\n",
+        "confident_dates = model_df_final.iloc[split_index:].reset_index(drop=True).iloc[confident_indices].copy()\n",
+        "confident_dates[\"prediction\"] = confident_preds\n",
+        "confident_dates[\"actual\"] = confident_truths.values\n",
+        "confident_dates[\"probability\"] = probs[confident_indices]\n",
+        "\n",
+        "# Sort by probability to inspect strongest signals\n",
+        "confident_dates = confident_dates.sort_values(by=\"probability\", ascending=False)\n",
+        "\n",
+        "# Save to CSV\n",
+        "confident_dates.to_csv(\"confident_predictions.csv\", index=False)\n",
+        "print(\"Saved confident predictions for review.\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263575
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Block 14\n",
+        "from xgboost import XGBClassifier\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "model_df_final[\"date\"] = model_df[\"date\"]\n",
+        "# Step 1: Define the time-based cutoff\n",
+        "cutoff_date = pd.to_datetime(\"2024-01-01\")\n",
+        "\n",
+        "# Step 2: Time-based train/test split\n",
+        "train_df = model_df_final[model_df_final[\"date\"] < cutoff_date]\n",
+        "test_df  = model_df_final[model_df_final[\"date\"] >= cutoff_date]\n",
+        "\n",
+        "X_train = train_df[refined_features]\n",
+        "y_train = train_df[\"went_up\"]\n",
+        "X_test  = test_df[refined_features]\n",
+        "y_test  = test_df[\"went_up\"]\n",
+        "\n",
+        "# Step 3: Train the model\n",
+        "model = XGBClassifier(eval_metric=\"logloss\", random_state=42, use_label_encoder=False)\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "# Step 4: Predict probabilities\n",
+        "probs = model.predict_proba(X_test)[:, 1]\n",
+        "threshold = 0.70\n",
+        "\n",
+        "# Step 5: Confidence filtering\n",
+        "confident_mask = (probs >= threshold) | (probs <= 1 - threshold)\n",
+        "confident_preds = (probs[confident_mask] >= threshold).astype(int)\n",
+        "confident_truths = y_test.iloc[confident_mask]\n",
+        "\n",
+        "# Step 6: Evaluation\n",
+        "confident_accuracy = accuracy_score(confident_truths, confident_preds)\n",
+        "print(f\"Out-of-sample confidence test (2024+):\")\n",
+        "print(f\"Threshold: {threshold}\")\n",
+        "print(f\"Decisions made: {len(confident_preds)} / {len(y_test)}\")\n",
+        "print(f\"Accuracy on confident predictions: {confident_accuracy:.4f}\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263588
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Block 15\n",
+        "\n",
+        "# Block: Visualize Feature Drift Between Pre-2024 and 2024+\n",
+        "import seaborn as sns\n",
+        "import matplotlib.pyplot as plt\n",
+        "\n",
+        "# Make sure 'year' column is an integer\n",
+        "model_df_final[\"year\"] = model_df_final[\"year\"].astype(int)\n",
+        "\n",
+        "# Split into pre-2024 and 2024+ datasets\n",
+        "pre_2024 = model_df_final[model_df_final[\"year\"] < 2024]\n",
+        "post_2024 = model_df_final[model_df_final[\"year\"] >= 2024]\n",
+        "\n",
+        "# Key features to compare\n",
+        "selected_features = [\n",
+        "    \"macd_diff\", \"rsi_14\", \"sma_ratio\", \"overnight_gap\",\n",
+        "    \"bollinger_position\", \"prior_volatility\", \"volume_5day_ratio\",\n",
+        "    \"prev_day_change\", \"sma_distance\", \"bollinger_width\"\n",
+        "]\n",
+        "\n",
+        "# Plot distribution comparisons\n",
+        "fig, axes = plt.subplots(nrows=5, ncols=2, figsize=(16, 20))\n",
+        "axes = axes.flatten()\n",
+        "\n",
+        "for i, feature in enumerate(selected_features):\n",
+        "    sns.kdeplot(pre_2024[feature], label=\"Before 2024\", ax=axes[i], fill=True)\n",
+        "    sns.kdeplot(post_2024[feature], label=\"2024+\", ax=axes[i], fill=True)\n",
+        "    axes[i].set_title(feature)\n",
+        "    axes[i].legend()\n",
+        "\n",
+        "plt.tight_layout()\n",
+        "plt.show()"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263608
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 16: Refined Feature Set After Importance Analysis\n",
+        "refined_features = [\n",
+        "    \"is_first_trading_day\", \"macd_diff\", \"day_of_week\", \"overnight_gap\",\n",
+        "    \"bollinger_position\", \"prior_volatility\", \"rsi_14\", \"sma_ratio\",\n",
+        "    \"prev_day_range_pct\", \"sma_distance\", \"month\", \"bollinger_width\",\n",
+        "    \"year\", \"prev_day_change\"\n",
+        "]\n",
+        "\n",
+        "# Filter final dataset\n",
+        "model_df_final = model_df[refined_features + [\"went_up\"]].dropna()\n",
+        "\n",
+        "# Redefine X and y\n",
+        "X = model_df_final[refined_features]\n",
+        "y = model_df_final[\"went_up\"]\n",
+        "\n",
+        "# Re-split by date\n",
+        "split_index = int(len(model_df_final) * 0.8)\n",
+        "X_train, X_test = X.iloc[:split_index], X.iloc[split_index:]\n",
+        "y_train, y_test = y.iloc[:split_index], y.iloc[split_index:]\n",
+        "\n",
+        "# Retrain model\n",
+        "model = XGBClassifier(n_estimators=200, max_depth=4, learning_rate=0.05, random_state=42)\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "# Re-evaluate\n",
+        "y_pred = model.predict(X_test)\n",
+        "print(\"Test Accuracy (pruned):\", accuracy_score(y_test, y_pred))\n",
+        "\n",
+        "# Confidence filtering again\n",
+        "y_probs = model.predict_proba(X_test)[:, 1]\n",
+        "threshold = 0.7\n",
+        "confident_mask = (y_probs > threshold) | (y_probs < 1 - threshold)\n",
+        "confident_preds = y_pred[confident_mask]\n",
+        "confident_actuals = y_test.iloc[confident_mask]\n",
+        "\n",
+        "print(\"Confident decisions made:\", len(confident_preds), \"/\", len(y_test))\n",
+        "print(\"Accuracy on confident decisions:\", accuracy_score(confident_actuals, confident_preds))"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263625
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Print sorted feature importances\n",
+        "importances = model.get_booster().get_score(importance_type='gain')\n",
+        "sorted_importances = sorted(importances.items(), key=lambda x: x[1], reverse=True)\n",
+        "for feature, score in sorted_importances:\n",
+        "    print(f\"{feature}: {score:.4f}\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263646
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Block 17\n",
+        "\n",
+        "import numpy as np\n",
+        "import matplotlib.pyplot as plt\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "\n",
+        "# Generate probabilities for the test set\n",
+        "probs = model.predict_proba(X_test)[:, 1]\n",
+        "y_test_reset = y_test.reset_index(drop=True)\n",
+        "\n",
+        "# Store results\n",
+        "thresholds = np.arange(0.5, 0.91, 0.05)\n",
+        "accuracies = []\n",
+        "decision_rates = []\n",
+        "\n",
+        "for threshold in thresholds:\n",
+        "    confident_mask = (probs >= threshold) | (probs <= (1 - threshold))\n",
+        "    if confident_mask.sum() == 0:\n",
+        "        accuracies.append(np.nan)\n",
+        "        decision_rates.append(0)\n",
+        "        continue\n",
+        "\n",
+        "    confident_preds = (probs[confident_mask] >= threshold).astype(int)\n",
+        "    confident_truths = y_test_reset[confident_mask]\n",
+        "\n",
+        "    acc = accuracy_score(confident_truths, confident_preds)\n",
+        "    decision_rate = len(confident_preds) / len(y_test)\n",
+        "\n",
+        "    accuracies.append(acc)\n",
+        "    decision_rates.append(decision_rate)\n",
+        "\n",
+        "# Plot accuracy vs threshold\n",
+        "plt.figure(figsize=(12, 5))\n",
+        "\n",
+        "plt.subplot(1, 2, 1)\n",
+        "plt.plot(thresholds, accuracies, marker='o')\n",
+        "plt.title(\"Accuracy on Confident Predictions\")\n",
+        "plt.xlabel(\"Confidence Threshold\")\n",
+        "plt.ylabel(\"Accuracy\")\n",
+        "plt.grid(True)\n",
+        "\n",
+        "# Plot decision rate\n",
+        "plt.subplot(1, 2, 2)\n",
+        "plt.plot(thresholds, decision_rates, marker='o', color='orange')\n",
+        "plt.title(\"Fraction of Confident Decisions\")\n",
+        "plt.xlabel(\"Confidence Threshold\")\n",
+        "plt.ylabel(\"Decision Rate\")\n",
+        "plt.grid(True)\n",
+        "\n",
+        "plt.tight_layout()\n",
+        "plt.show()"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263660
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 18: Backtest strategy using 0.65 threshold\n",
+        "from matplotlib.dates import DateFormatter\n",
+        "\n",
+        "CONFIDENCE_THRESHOLD = 0.65\n",
+        "\n",
+        "# Reset index for plotting\n",
+        "y_test_reset = y_test.reset_index(drop=True)\n",
+        "X_test_reset = X_test.reset_index(drop=True)\n",
+        "test_dates = model_df.iloc[-len(X_test):][\"date\"].reset_index(drop=True)\n",
+        "# Predict probabilities\n",
+        "probs = model.predict_proba(X_test_reset)[:, 1]\n",
+        "\n",
+        "# Strategy: Buy if confident it's going up\n",
+        "confident_buy = probs >= CONFIDENCE_THRESHOLD\n",
+        "actual_movement = y_test_reset\n",
+        "\n",
+        "# Simulate equity curve\n",
+        "returns = (actual_movement * confident_buy).astype(int)\n",
+        "equity = returns.cumsum()\n",
+        "\n",
+        "# Plot\n",
+        "plt.figure(figsize=(12, 5))\n",
+        "plt.plot(test_dates, equity, label=\"Strategy Equity Curve\", color=\"green\")\n",
+        "plt.title(f\"Backtest: Buy if prob ≥ {CONFIDENCE_THRESHOLD}\")\n",
+        "plt.xlabel(\"Date\")\n",
+        "plt.ylabel(\"Cumulative Wins\")\n",
+        "plt.grid(True)\n",
+        "plt.legend()\n",
+        "plt.gca().xaxis.set_major_formatter(DateFormatter(\"%Y-%m\"))\n",
+        "plt.xticks(rotation=45)\n",
+        "plt.tight_layout()\n",
+        "plt.show()\n",
+        "\n",
+        "# Print results\n",
+        "total_trades = confident_buy.sum()\n",
+        "accuracy = accuracy_score(actual_movement[confident_buy], np.ones(total_trades))\n",
+        "print(f\"Threshold: {CONFIDENCE_THRESHOLD}\")\n",
+        "print(f\"Total trades: {total_trades}\")\n",
+        "print(f\"Strategy accuracy on trades: {accuracy:.4f}\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263684
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Block 19\n",
+        "import matplotlib.pyplot as plt\n",
+        "import numpy as np\n",
+        "\n",
+        "# Set confidence threshold\n",
+        "threshold = 0.65\n",
+        "\n",
+        "# Reset y_test and prediction arrays\n",
+        "y_test_reset = y_test.reset_index(drop=True)\n",
+        "X_test_reset = X_test.reset_index(drop=True)\n",
+        "test_dates = model_df.iloc[split_index:][\"date\"].reset_index(drop=True)\n",
+        "\n",
+        "# Get predicted probabilities\n",
+        "probs = model.predict_proba(X_test_reset)[:, 1]\n",
+        "preds = (probs > 0.5).astype(int)\n",
+        "\n",
+        "# Filter for confident trades\n",
+        "confident_mask = (probs >= threshold) | (probs <= 1 - threshold)\n",
+        "confident_preds = preds[confident_mask]\n",
+        "confident_actuals = y_test_reset[confident_mask].values\n",
+        "confident_dates = test_dates[confident_mask].values\n",
+        "\n",
+        "# Simulate equity curve\n",
+        "equity = [1]\n",
+        "for pred, actual in zip(confident_preds, confident_actuals):\n",
+        "    if pred == actual:\n",
+        "        equity.append(equity[-1] * 1.01)  # +1% gain\n",
+        "    else:\n",
+        "        equity.append(equity[-1] * 0.99)  # -1% loss\n",
+        "\n",
+        "# Plot\n",
+        "plt.figure(figsize=(10, 5))\n",
+        "plt.plot(confident_dates, equity[1:], label=f'Threshold = {threshold}')\n",
+        "plt.title(\"Simulated Equity Curve for Confident Predictions\")\n",
+        "plt.xlabel(\"Date\")\n",
+        "plt.ylabel(\"Equity\")\n",
+        "plt.grid(True)\n",
+        "plt.legend()\n",
+        "plt.tight_layout()\n",
+        "plt.show()"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263704
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "import matplotlib.pyplot as plt\n",
+        "\n",
+        "# Simulate position sizing with variable confidence thresholds\n",
+        "def simulate_equity_with_position_sizing(test_dates, y_test, y_probs, threshold_base=0.65):\n",
+        "    confident_mask = y_probs >= threshold_base\n",
+        "    confident_dates = test_dates[confident_mask].reset_index(drop=True)\n",
+        "    confident_actuals = y_test[confident_mask].reset_index(drop=True)\n",
+        "    confident_probs = y_probs[confident_mask]\n",
+        "\n",
+        "    # Assign position size: 1.0 for medium confidence, 2.0 for high\n",
+        "    sizes = np.where(confident_probs >= 0.85, 2.0, 1.0)\n",
+        "\n",
+        "    # Simulate equity\n",
+        "    equity = [1.0]\n",
+        "    for i in range(len(confident_actuals)):\n",
+        "        prev = equity[-1]\n",
+        "        ret = sizes[i] if confident_actuals[i] == 1 else -0.5 * sizes[i]\n",
+        "        equity.append(prev * (1 + ret * 0.01))  # Assume 1% up/down movement\n",
+        "\n",
+        "    equity_series = pd.Series(equity[1:], index=confident_dates)\n",
+        "\n",
+        "    # Plot equity curve\n",
+        "    plt.figure(figsize=(10, 5))\n",
+        "    plt.plot(equity_series.index, equity_series.values, label=\"Position-Sized Equity\", color=\"purple\")\n",
+        "    plt.title(\"Simulated Equity Curve with Position Sizing\")\n",
+        "    plt.xlabel(\"Date\")\n",
+        "    plt.ylabel(\"Equity\")\n",
+        "    plt.legend()\n",
+        "    plt.grid(True)\n",
+        "    plt.tight_layout()\n",
+        "    plt.show()"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263724
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "simulate_equity_with_position_sizing(test_dates, y_test_reset, probs, threshold_base=0.65)"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263744
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Create position equity series if not already done\n",
+        "position_equity = pd.Series(equity[1:], index=confident_dates)\n",
+        "\n",
+        "# Compute trade-by-trade returns\n",
+        "trade_returns = position_equity.pct_change().dropna()\n",
+        "\n",
+        "# Strategy metrics function\n",
+        "def compute_strategy_metrics(equity_curve, trade_returns):\n",
+        "    total_return = equity_curve.iloc[-1] - 1.0\n",
+        "    years = (equity_curve.index[-1] - equity_curve.index[0]).days / 365.25\n",
+        "    cagr = (equity_curve.iloc[-1]) ** (1 / years) - 1 if years > 0 else 0\n",
+        "\n",
+        "    # Drawdown calculation\n",
+        "    rolling_max = equity_curve.cummax()\n",
+        "    drawdowns = (equity_curve - rolling_max) / rolling_max\n",
+        "    max_drawdown = drawdowns.min()\n",
+        "\n",
+        "    return {\n",
+        "        \"CAGR\": cagr,\n",
+        "        \"Total Return\": total_return,\n",
+        "        \"Max Drawdown\": max_drawdown,\n",
+        "        \"Total Trades\": len(trade_returns),\n",
+        "        \"Win Rate\": (trade_returns > 0).mean(),\n",
+        "        \"Avg Win\": trade_returns[trade_returns > 0].mean(),\n",
+        "        \"Avg Loss\": trade_returns[trade_returns <= 0].mean()\n",
+        "    }\n",
+        "\n",
+        "# Compute and print the metrics\n",
+        "metrics = compute_strategy_metrics(position_equity, trade_returns)\n",
+        "\n",
+        "print(\"\\n--- Strategy Performance Summary ---\")\n",
+        "for key, val in metrics.items():\n",
+        "    print(f\"{key}: {val:.4f}\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263756
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "position_equity = pd.Series(equity[1:], index=confident_dates)"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263775
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 21: Evaluate Position-Sized Strategy Performance\n",
+        "\n",
+        "def compute_strategy_metrics(equity_curve):\n",
+        "    returns = equity_curve.pct_change().dropna()\n",
+        "    total_return = equity_curve.iloc[-1] / equity_curve.iloc[0] - 1\n",
+        "    num_years = (equity_curve.index[-1] - equity_curve.index[0]).days / 365.25\n",
+        "    cagr = (equity_curve.iloc[-1] / equity_curve.iloc[0]) ** (1 / num_years) - 1\n",
+        "\n",
+        "    rolling_max = equity_curve.cummax()\n",
+        "    drawdowns = (equity_curve - rolling_max) / rolling_max\n",
+        "    max_drawdown = drawdowns.min()\n",
+        "\n",
+        "    return {\n",
+        "        \"CAGR\": cagr,\n",
+        "        \"Total Return\": total_return,\n",
+        "        \"Max Drawdown\": max_drawdown,\n",
+        "        \"Total Trades\": len(trade_returns),\n",
+        "        \"Win Rate\": (trade_returns > 0).mean(),\n",
+        "        \"Avg Win\": trade_returns[trade_returns > 0].mean(),\n",
+        "        \"Avg Loss\": trade_returns[trade_returns <= 0].mean()\n",
+        "    }\n",
+        "\n",
+        "# Compute metrics\n",
+        "metrics = compute_strategy_metrics(position_equity)\n",
+        "\n",
+        "# Print nicely\n",
+        "print(\"\\n--- Strategy Performance Summary ---\")\n",
+        "for k, v in metrics.items():\n",
+        "    if isinstance(v, float):\n",
+        "        print(f\"{k}: {v:.2%}\")\n",
+        "    else:\n",
+        "        print(f\"{k}: {v}\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263786
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 22: Position-Sized Strategy Simulation\n",
+        "\n",
+        "# Parameters\n",
+        "position_size = 0.25  # 25% of capital per trade\n",
+        "initial_equity = 1.0  # normalized\n",
+        "\n",
+        "# Use confident_dates and confident_preds from earlier blocks\n",
+        "trade_returns = pd.Series(confident_preds).replace({1: 0.01, 0: -0.01}).values\n",
+        "equity = [initial_equity]\n",
+        "\n",
+        "# Simulate equity curve with fixed position size per trade\n",
+        "for r in trade_returns:\n",
+        "    capital = equity[-1]\n",
+        "    change = 1 + position_size * r\n",
+        "    equity.append(capital * change)\n",
+        "\n",
+        "# Convert to Series\n",
+        "position_equity = pd.Series(equity[1:], index=confident_dates)\n",
+        "\n",
+        "# Visualize\n",
+        "position_equity.plot(title=\"Position-Sized Equity Curve (25% per trade)\", figsize=(10, 4))\n",
+        "plt.ylabel(\"Equity (normalized)\")\n",
+        "plt.grid(True)\n",
+        "plt.show()"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263804
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Reconstruct confident predictions and dates for test set\n",
+        "probs = model.predict_proba(X_test)[:, 1]\n",
+        "confidence_threshold = 0.65\n",
+        "confident_mask = (probs > confidence_threshold) | (probs < 1 - confidence_threshold)\n",
+        "confident_preds = (probs > 0.5).astype(int)[confident_mask]\n",
+        "\n",
+        "# Grab corresponding dates from model_df using the index of X_test\n",
+        "test_indices = X_test.index\n",
+        "confident_indices = test_indices[confident_mask]\n",
+        "\n",
+        "# Now get dates and actual returns from model_df\n",
+        "confident_dates = model_df.loc[confident_indices][\"date\"].reset_index(drop=True)\n",
+        "actual_returns = (\n",
+        "    (model_df.loc[confident_indices][\"close_935\"].values -\n",
+        "     model_df.loc[confident_indices][\"close_930\"].values)\n",
+        "    / model_df.loc[confident_indices][\"close_930\"].values\n",
+        ")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263832
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 23: Simulate equity curve using actual returns from confident trades\n",
+        "\n",
+        "initial_equity = 1.0\n",
+        "equity = [initial_equity]\n",
+        "\n",
+        "# Loop over confident trades and apply actual returns\n",
+        "for ret in actual_returns:\n",
+        "    equity.append(equity[-1] * (1 + ret))\n",
+        "\n",
+        "# Convert to pandas Series for plotting and analysis\n",
+        "equity_series = pd.Series(equity[1:], index=confident_dates)\n",
+        "\n",
+        "# Plot\n",
+        "import matplotlib.pyplot as plt\n",
+        "\n",
+        "plt.figure(figsize=(12, 6))\n",
+        "plt.plot(equity_series, label=\"Equity Curve (Actual Returns)\")\n",
+        "plt.title(\"Realistic Strategy Equity Curve\")\n",
+        "plt.xlabel(\"Date\")\n",
+        "plt.ylabel(\"Equity\")\n",
+        "plt.grid(True)\n",
+        "plt.legend()\n",
+        "plt.show()"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263849
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 24: Evaluate Realistic Strategy Performance\n",
+        "\n",
+        "def compute_realistic_metrics(equity_series):\n",
+        "    total_return = equity_series.iloc[-1] / equity_series.iloc[0] - 1\n",
+        "    duration_years = (equity_series.index[-1] - equity_series.index[0]).days / 365\n",
+        "    cagr = (1 + total_return) ** (1 / duration_years) - 1\n",
+        "\n",
+        "    # Max Drawdown\n",
+        "    rolling_max = equity_series.cummax()\n",
+        "    drawdowns = (equity_series - rolling_max) / rolling_max\n",
+        "    max_drawdown = drawdowns.min()\n",
+        "\n",
+        "    return {\n",
+        "        \"CAGR\": round(cagr * 100, 2),\n",
+        "        \"Total Return\": round(total_return * 100, 2),\n",
+        "        \"Max Drawdown\": round(max_drawdown * 100, 2)\n",
+        "    }\n",
+        "\n",
+        "realistic_metrics = compute_realistic_metrics(equity_series)\n",
+        "\n",
+        "print(\"\\n--- Realistic Strategy Performance Summary ---\")\n",
+        "for k, v in realistic_metrics.items():\n",
+        "    print(f\"{k}: {v}%\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263864
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Compute actual test returns (percentage change from 9:30 to 9:35)\n",
+        "test_returns = (\n",
+        "    model_df.iloc[split_index:][[\"close_930\", \"close_935\"]]\n",
+        "    .reset_index(drop=True)\n",
+        "    .eval(\"(close_935 - close_930) / close_930\")\n",
+        ")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263880
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Prepare confident trade data for dynamic position sizing\n",
+        "# These must already exist from prior blocks\n",
+        "confident_probs = probs[confident_mask]\n",
+        "confident_preds = (confident_probs > threshold).astype(int)\n",
+        "confident_returns = test_returns[confident_mask].reset_index(drop=True)\n",
+        "confident_dates = test_dates[confident_mask].reset_index(drop=True)"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263892
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 25: Position-Sized Equity Curve Simulation\n",
+        "\n",
+        "initial_equity = 1.0\n",
+        "position_size = 0.25  # 25% of capital per trade\n",
+        "\n",
+        "equity = [initial_equity]\n",
+        "for ret in test_returns[confident_mask].values:\n",
+        "    prev_equity = equity[-1]\n",
+        "    trade_change = position_size * ret\n",
+        "    new_equity = prev_equity * (1 + trade_change)\n",
+        "    equity.append(new_equity)\n",
+        "\n",
+        "# Create equity series indexed by confident dates\n",
+        "position_equity = pd.Series(equity[1:], index=confident_dates)\n",
+        "\n",
+        "# Plot\n",
+        "import matplotlib.pyplot as plt\n",
+        "\n",
+        "plt.figure(figsize=(10, 5))\n",
+        "position_equity.plot(title=\"Position-Sized Equity Curve (25% per trade)\")\n",
+        "plt.ylabel(\"Equity\")\n",
+        "plt.grid(True)\n",
+        "plt.show()"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263905
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Fix mismatch by skipping the first value\n",
+        "realistic_equity = pd.Series(equity[1:], index=confident_dates)"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263919
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 26: Metrics for Realistic Position-Sized Strategy\n",
+        "\n",
+        "def compute_real_metrics(equity_curve):\n",
+        "    total_return = equity_curve.iloc[-1] - 1\n",
+        "    num_days = (equity_curve.index[-1] - equity_curve.index[0]).days\n",
+        "    cagr = (equity_curve.iloc[-1]) ** (365 / num_days) - 1\n",
+        "\n",
+        "    rolling_max = equity_curve.cummax()\n",
+        "    drawdowns = (equity_curve - rolling_max) / rolling_max\n",
+        "    max_drawdown = drawdowns.min()\n",
+        "\n",
+        "    # Approximate trade-level returns\n",
+        "    trade_returns = equity_curve.pct_change().dropna()\n",
+        "\n",
+        "    return {\n",
+        "        \"CAGR\": round(cagr * 100, 2),\n",
+        "        \"Total Return\": round(total_return * 100, 2),\n",
+        "        \"Max Drawdown\": round(max_drawdown * 100, 2),\n",
+        "        \"Total Trades\": len(trade_returns),\n",
+        "        \"Win Rate\": round((trade_returns > 0).mean() * 100, 2),\n",
+        "        \"Avg Win\": round(trade_returns[trade_returns > 0].mean() * 100, 2),\n",
+        "        \"Avg Loss\": round(trade_returns[trade_returns <= 0].mean() * 100, 2)\n",
+        "    }\n",
+        "\n",
+        "# Run it\n",
+        "final_metrics = compute_real_metrics(realistic_equity)\n",
+        "print(\"\\n--- Final Strategy Metrics (Realistic Position-Sized) ---\")\n",
+        "for k, v in final_metrics.items():\n",
+        "    print(f\"{k}: {v}\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263931
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.metrics import accuracy_score\n",
+        "\n",
+        "# Step 1: Predict probabilities on test set\n",
+        "probs = model.predict_proba(X_test)[:, 1]\n",
+        "threshold = 0.7\n",
+        "confident_mask = (probs >= threshold) | (probs <= (1 - threshold))\n",
+        "\n",
+        "# Step 2: Filter predictions and actual returns\n",
+        "confident_preds = (probs[confident_mask] >= threshold).astype(int)\n",
+        "confident_dates = test_dates[confident_mask].reset_index(drop=True)\n",
+        "confident_returns = test_returns[confident_mask].reset_index(drop=True)\n",
+        "\n",
+        "# Step 3: Simulate equity curve using actual returns with fixed position sizing\n",
+        "initial_equity = 1.0\n",
+        "equity = [initial_equity]\n",
+        "\n",
+        "for pred, ret in zip(confident_preds, confident_returns):\n",
+        "    if pred == 1:\n",
+        "        equity.append(equity[-1] * (1 + ret))  # take long trade\n",
+        "    else:\n",
+        "        equity.append(equity[-1])  # no trade\n",
+        "\n",
+        "# Remove the initial 1.0 placeholder for plotting\n",
+        "realistic_equity = pd.Series(equity[1:], index=confident_dates)\n",
+        "\n",
+        "# Step 4: Define performance metrics\n",
+        "def compute_real_metrics(equity_curve):\n",
+        "    returns = equity_curve.pct_change().dropna()\n",
+        "    total_return = equity_curve.iloc[-1] - 1\n",
+        "    cagr = (equity_curve.iloc[-1]) ** (1 / (len(equity_curve) / 252)) - 1\n",
+        "    rolling_max = equity_curve.cummax()\n",
+        "    max_drawdown = ((equity_curve - rolling_max) / rolling_max).min()\n",
+        "    \n",
+        "    trade_returns = confident_returns.copy()\n",
+        "    return {\n",
+        "        \"CAGR\": round(cagr * 100, 2),\n",
+        "        \"Total Return\": round(total_return * 100, 2),\n",
+        "        \"Max Drawdown\": round(max_drawdown * 100, 2),\n",
+        "        \"Total Trades\": len(trade_returns),\n",
+        "        \"Win Rate\": round((trade_returns > 0).mean() * 100, 2),\n",
+        "        \"Avg Win\": round(trade_returns[trade_returns > 0].mean() * 100, 2),\n",
+        "        \"Avg Loss\": round(trade_returns[trade_returns <= 0].mean() * 100, 2)\n",
+        "    }\n",
+        "\n",
+        "# Step 5: Evaluate and print results\n",
+        "metrics = compute_real_metrics(realistic_equity)\n",
+        "\n",
+        "print(\"\\n--- Realistic Strategy Performance Summary ---\")\n",
+        "for k, v in metrics.items():\n",
+        "    print(f\"{k}: {v}\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263951
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 27: Higher Confidence Threshold + Long Only Simulation\n",
+        "\n",
+        "# Step 1: Define higher threshold\n",
+        "threshold = 0.75\n",
+        "confident_mask = probs >= threshold  # Only long confident trades\n",
+        "\n",
+        "# Step 2: Filter predictions and returns\n",
+        "confident_preds = (probs[confident_mask] >= threshold).astype(int)\n",
+        "confident_dates = test_dates[confident_mask].reset_index(drop=True)\n",
+        "confident_returns = test_returns[confident_mask].reset_index(drop=True)\n",
+        "\n",
+        "# Step 3: Simulate equity with actual % changes\n",
+        "initial_equity = 1.0\n",
+        "equity = [initial_equity]\n",
+        "\n",
+        "for pred, ret in zip(confident_preds, confident_returns):\n",
+        "    if pred == 1:\n",
+        "        equity.append(equity[-1] * (1 + ret))\n",
+        "    else:\n",
+        "        equity.append(equity[-1])\n",
+        "\n",
+        "realistic_equity = pd.Series(equity[1:], index=confident_dates)\n",
+        "\n",
+        "# Step 4: Evaluate performance\n",
+        "metrics = compute_real_metrics(realistic_equity)\n",
+        "\n",
+        "print(\"\\n--- Higher Threshold (0.75), Long-Only Strategy ---\")\n",
+        "for k, v in metrics.items():\n",
+        "    print(f\"{k}: {v}\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851263982
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 28 (Fixed): Long-Only Strategy with 0.65 Threshold\n",
+        "\n",
+        "threshold = 0.65\n",
+        "confident_mask = probs > threshold\n",
+        "confident_probs = probs[confident_mask]\n",
+        "confident_preds = (confident_probs > threshold).astype(int)\n",
+        "\n",
+        "# Subset confident returns and dates\n",
+        "confident_returns = test_returns[confident_mask].reset_index(drop=True)\n",
+        "confident_dates = test_dates[confident_mask].reset_index(drop=True)\n",
+        "\n",
+        "# Now apply long-only mask *within* confident predictions\n",
+        "long_only_mask = confident_preds == 1\n",
+        "long_returns = confident_returns[long_only_mask].reset_index(drop=True)\n",
+        "long_dates = confident_dates[long_only_mask].reset_index(drop=True)\n",
+        "\n",
+        "# Simulate equity curve\n",
+        "initial_equity = 1.0\n",
+        "equity = [initial_equity]\n",
+        "for r in long_returns:\n",
+        "    equity.append(equity[-1] * (1 + r))\n",
+        "\n",
+        "realistic_equity = pd.Series(equity[1:], index=long_dates)\n",
+        "\n",
+        "# Compute metrics\n",
+        "final_metrics = compute_real_metrics(realistic_equity)\n",
+        "\n",
+        "# Display results\n",
+        "print(\"\\n--- Long-Only Strategy (Threshold 0.65) ---\")\n",
+        "for k, v in final_metrics.items():\n",
+        "    print(f\"{k}: {v}\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851264000
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 29: Confidence Band Analysis (Long-Only)\n",
+        "\n",
+        "# Step 1: Define confidence thresholds\n",
+        "bands = [\n",
+        "    (0.65, 0.7),\n",
+        "    (0.7, 0.75),\n",
+        "    (0.75, 1.0)\n",
+        "]\n",
+        "\n",
+        "# Step 2: Evaluate each band\n",
+        "for low, high in bands:\n",
+        "    band_mask = (probs >= low) & (probs < high)\n",
+        "    long_only_mask = (probs >= low) & (probs < high) & (probs > 0.5)\n",
+        "    \n",
+        "    band_preds = (probs[long_only_mask] > 0.5).astype(int)\n",
+        "    band_returns = test_returns[long_only_mask]\n",
+        "    band_dates = test_dates[long_only_mask]\n",
+        "    \n",
+        "    if len(band_returns) == 0:\n",
+        "        print(f\"\\n--- Band {low}-{high} ---\")\n",
+        "        print(\"No confident predictions in this band.\")\n",
+        "        continue\n",
+        "\n",
+        "    # Simulate equity curve\n",
+        "    equity = [1.0]\n",
+        "    for r in band_returns:\n",
+        "        equity.append(equity[-1] * (1 + r))\n",
+        "    equity = equity[1:]\n",
+        "\n",
+        "    # Compute metrics\n",
+        "    def compute_metrics(equity_curve, returns):\n",
+        "        total_return = equity_curve[-1] - 1\n",
+        "        cagr = (equity_curve[-1])**(1 / (len(equity_curve) / 252)) - 1\n",
+        "        drawdown = (pd.Series(equity_curve).cummax() - equity_curve) / pd.Series(equity_curve).cummax()\n",
+        "        max_dd = drawdown.max()\n",
+        "        win_rate = (returns > 0).mean()\n",
+        "        return total_return, cagr, max_dd, win_rate, len(returns)\n",
+        "\n",
+        "    tr, cagr, max_dd, win_rate, num_trades = compute_metrics(equity, band_returns)\n",
+        "\n",
+        "    # Print results\n",
+        "    print(f\"\\n--- Band {low}-{high} ---\")\n",
+        "    print(f\"Trades: {num_trades}\")\n",
+        "    print(f\"Win Rate: {win_rate:.2%}\")\n",
+        "    print(f\"Total Return: {tr:.2%}\")\n",
+        "    print(f\"CAGR: {cagr:.2%}\")\n",
+        "    print(f\"Max Drawdown: {max_dd:.2%}\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851264017
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 30 (Refactored): Evaluate Strategy for Any Confidence Band\n",
+        "\n",
+        "def run_band_strategy(lower_bound, upper_bound, confident_probs, confident_preds, confident_returns, confident_dates):\n",
+        "    \"\"\"\n",
+        "    Simulates and evaluates a trading strategy on a confidence interval.\n",
+        "    \"\"\"\n",
+        "    # Filter trades in the confidence band\n",
+        "    band_mask = (confident_probs >= lower_bound) & (confident_probs < upper_bound)\n",
+        "    band_preds = confident_preds[band_mask]\n",
+        "    band_returns = confident_returns[band_mask].reset_index(drop=True)\n",
+        "    band_dates = confident_dates[band_mask].reset_index(drop=True)\n",
+        "\n",
+        "    # Simulate equity curve\n",
+        "    equity = [1.0]\n",
+        "    for r in band_returns:\n",
+        "        equity.append(equity[-1] * (1 + r))\n",
+        "    band_equity_series = pd.Series(equity[1:], index=band_dates)\n",
+        "\n",
+        "    # Compute metrics\n",
+        "    def compute_band_metrics(equity_curve, returns):\n",
+        "        total_return = equity_curve.iloc[-1] - 1\n",
+        "        years = (equity_curve.index[-1] - equity_curve.index[0]).days / 365.25\n",
+        "        cagr = (equity_curve.iloc[-1])**(1/years) - 1 if years > 0 else 0\n",
+        "        rolling_max = equity_curve.cummax()\n",
+        "        drawdowns = (equity_curve - rolling_max) / rolling_max\n",
+        "        max_dd = drawdowns.min()\n",
+        "        return {\n",
+        "            \"CAGR\": round(cagr * 100, 2),\n",
+        "            \"Total Return\": round(total_return * 100, 2),\n",
+        "            \"Max Drawdown\": round(max_dd * 100, 2),\n",
+        "            \"Total Trades\": len(returns),\n",
+        "            \"Win Rate\": round((returns > 0).mean() * 100, 2),\n",
+        "            \"Avg Win\": round(returns[returns > 0].mean() * 100, 2),\n",
+        "            \"Avg Loss\": round(returns[returns <= 0].mean() * 100, 2),\n",
+        "        }\n",
+        "\n",
+        "    metrics = compute_band_metrics(band_equity_series, band_returns)\n",
+        "\n",
+        "    print(f\"\\n--- Strategy Performance for Confidence Band {lower_bound}–{upper_bound} ---\")\n",
+        "    for k, v in metrics.items():\n",
+        "        print(f\"{k}: {v}\")\n",
+        "\n",
+        "    return band_equity_series, metrics"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851264042
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import matplotlib.pyplot as plt\n",
+        "import pandas as pd\n",
+        "\n",
+        "# Provided performance data for 0.65–0.7 band\n",
+        "band_dates = pd.date_range(start=\"2024-01-01\", periods=36, freq=\"2D\")\n",
+        "band_returns = [0.05 if i % 3 != 0 else -0.01 for i in range(36)]  # Simulated consistent wins with rare losses\n",
+        "\n",
+        "# Simulate equity curve\n",
+        "equity = [1.0]\n",
+        "for r in band_returns:\n",
+        "    equity.append(equity[-1] * (1 + r))\n",
+        "equity = equity[1:]\n",
+        "\n",
+        "# Create a Series\n",
+        "equity_series = pd.Series(equity, index=band_dates)\n",
+        "\n",
+        "# Plot\n",
+        "plt.figure(figsize=(10, 5))\n",
+        "plt.plot(equity_series, label='Equity Curve (0.65–0.7 Band)', linewidth=2)\n",
+        "plt.title(\"Equity Curve: Confidence Band 0.65–0.7\")\n",
+        "plt.xlabel(\"Date\")\n",
+        "plt.ylabel(\"Equity\")\n",
+        "plt.grid(True)\n",
+        "plt.legend()\n",
+        "plt.tight_layout()\n",
+        "plt.show()"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851264068
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "run_band_strategy(0.65, 0.7, confident_probs, confident_preds, confident_returns, confident_dates)"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851264085
+        },
+        "jupyter": {
+          "outputs_hidden": true
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def run_band_strategy(lower_bound, upper_bound, confident_probs, confident_preds, confident_returns, confident_dates):\n",
+        "    band_mask = (confident_probs >= lower_bound) & (confident_probs < upper_bound)\n",
+        "    \n",
+        "    band_preds = confident_preds[band_mask]\n",
+        "    band_returns = confident_returns[band_mask].reset_index(drop=True)\n",
+        "    band_dates = confident_dates[band_mask].reset_index(drop=True)\n",
+        "\n",
+        "    # Skip if no trades in this band\n",
+        "    if len(band_returns) == 0:\n",
+        "        print(f\"No trades in band {lower_bound}–{upper_bound}\")\n",
+        "        return pd.Series(dtype=float), {\n",
+        "            \"CAGR\": None,\n",
+        "            \"Total Return\": None,\n",
+        "            \"Max Drawdown\": None,\n",
+        "            \"Total Trades\": 0,\n",
+        "            \"Win Rate\": None,\n",
+        "            \"Avg Win\": None,\n",
+        "            \"Avg Loss\": None,\n",
+        "        }\n",
+        "\n",
+        "    # Simulate equity\n",
+        "    equity = [1.0]\n",
+        "    for ret in band_returns:\n",
+        "        equity.append(equity[-1] * (1 + ret))\n",
+        "    band_equity_series = pd.Series(equity[1:], index=band_dates)\n",
+        "\n",
+        "    # Metrics\n",
+        "    def compute_band_metrics(equity_curve, returns):\n",
+        "        total_return = equity_curve.iloc[-1] - 1\n",
+        "        years = (equity_curve.index[-1] - equity_curve.index[0]).days / 365.25\n",
+        "        cagr = (equity_curve.iloc[-1])**(1/years) - 1 if years > 0 else 0\n",
+        "        rolling_max = equity_curve.cummax()\n",
+        "        drawdowns = (equity_curve - rolling_max) / rolling_max\n",
+        "        max_dd = drawdowns.min()\n",
+        "        return {\n",
+        "            \"CAGR\": round(cagr * 100, 2),\n",
+        "            \"Total Return\": round(total_return * 100, 2),\n",
+        "            \"Max Drawdown\": round(max_dd * 100, 2),\n",
+        "            \"Total Trades\": len(returns),\n",
+        "            \"Win Rate\": round((returns > 0).mean() * 100, 2),\n",
+        "            \"Avg Win\": round(returns[returns > 0].mean() * 100, 2),\n",
+        "            \"Avg Loss\": round(returns[returns <= 0].mean() * 100, 2),\n",
+        "        }\n",
+        "\n",
+        "    metrics = compute_band_metrics(band_equity_series, band_returns)\n",
+        "\n",
+        "    print(f\"\\n--- Strategy Performance for Confidence Band {lower_bound}–{upper_bound} ---\")\n",
+        "    for k, v in metrics.items():\n",
+        "        print(f\"{k}: {v}\")\n",
+        "    \n",
+        "    return band_equity_series, metrics"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851264097
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 31: Evaluate Multiple Confidence Bands\n",
+        "\n",
+        "bands = [(0.6, 0.65), (0.65, 0.7), (0.7, 0.75), (0.75, 0.8), (0.8, 1.0)]\n",
+        "band_results = {}\n",
+        "\n",
+        "for lower, upper in bands:\n",
+        "    print(f\"\\nEvaluating band {lower}–{upper}\")\n",
+        "    equity_curve, metrics = run_band_strategy(\n",
+        "        lower, upper,\n",
+        "        confident_probs,\n",
+        "        confident_preds,\n",
+        "        confident_returns,\n",
+        "        confident_dates\n",
+        "    )\n",
+        "    band_results[(lower, upper)] = metrics"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851264128
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "\n",
+        "def run_confidence_band_strategy(confident_probs, confident_preds, confident_returns, confident_dates, lower, upper):\n",
+        "    \"\"\"Run strategy simulation for a given confidence band range [lower, upper).\"\"\"\n",
+        "    mask = (confident_probs >= lower) & (confident_probs < upper)\n",
+        "    \n",
+        "    band_probs = pd.Series(confident_probs[mask]).reset_index(drop=True)\n",
+        "    band_preds = pd.Series(confident_preds[mask]).reset_index(drop=True)\n",
+        "    band_returns = pd.Series(confident_returns[mask]).reset_index(drop=True)\n",
+        "    band_dates = pd.Series(confident_dates[mask]).reset_index(drop=True)\n",
+        "\n",
+        "    if len(band_returns) == 0:\n",
+        "        return None, {\n",
+        "            \"CAGR\": None,\n",
+        "            \"Total Return\": None,\n",
+        "            \"Max Drawdown\": None,\n",
+        "            \"Total Trades\": 0,\n",
+        "            \"Win Rate\": None,\n",
+        "            \"Avg Win\": None,\n",
+        "            \"Avg Loss\": None\n",
+        "        }\n",
+        "\n",
+        "    equity = [1.0]\n",
+        "    for r in band_returns:\n",
+        "        equity.append(equity[-1] * (1 + r))\n",
+        "    equity_series = pd.Series(equity[1:], index=band_dates)\n",
+        "\n",
+        "    total_return = equity_series.iloc[-1] - 1\n",
+        "    duration_days = (equity_series.index[-1] - equity_series.index[0]).days\n",
+        "    cagr = (equity_series.iloc[-1])**(252 / duration_days) - 1 if duration_days > 0 else 0\n",
+        "    max_dd = ((equity_series - equity_series.cummax()) / equity_series.cummax()).min()\n",
+        "\n",
+        "    win_rate = (band_returns > 0).mean()\n",
+        "    avg_win = band_returns[band_returns > 0].mean()\n",
+        "    avg_loss = band_returns[band_returns <= 0].mean()\n",
+        "\n",
+        "    metrics = {\n",
+        "        \"CAGR\": round(cagr * 100, 2),\n",
+        "        \"Total Return\": round(total_return * 100, 2),\n",
+        "        \"Max Drawdown\": round(max_dd * 100, 2),\n",
+        "        \"Total Trades\": len(band_returns),\n",
+        "        \"Win Rate\": round(win_rate * 100, 2),\n",
+        "        \"Avg Win\": round(avg_win * 100, 2),\n",
+        "        \"Avg Loss\": round(avg_loss * 100, 2)\n",
+        "    }\n",
+        "\n",
+        "    return equity_series, metrics"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "gather": {
+          "logged": 1746851264142
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "equity_series, metrics = run_confidence_band_strategy(\n",
+        "    confident_probs,\n",
+        "    confident_preds,\n",
+        "    confident_returns,\n",
+        "    confident_dates,\n",
+        "    lower=0.65,\n",
+        "    upper=0.7\n",
+        ")"
+      ],
+      "outputs": [],
+      "execution_count": 116,
+      "metadata": {
+        "gather": {
+          "logged": 1746835996599
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 32: Ensemble Voting Classifier\n",
+        "\n",
+        "from sklearn.ensemble import VotingClassifier, RandomForestClassifier, GradientBoostingClassifier\n",
+        "from sklearn.linear_model import LogisticRegression\n",
+        "from xgboost import XGBClassifier\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "\n",
+        "# Define base models\n",
+        "xgb = XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=42)\n",
+        "rf = RandomForestClassifier(n_estimators=100, random_state=42)\n",
+        "gb = GradientBoostingClassifier(n_estimators=100, random_state=42)\n",
+        "lr = LogisticRegression(max_iter=1000, random_state=42)\n",
+        "\n",
+        "# Ensemble model (soft voting uses probabilities)\n",
+        "ensemble = VotingClassifier(\n",
+        "    estimators=[('xgb', xgb), ('rf', rf), ('gb', gb), ('lr', lr)],\n",
+        "    voting='soft'\n",
+        ")\n",
+        "\n",
+        "# Fit on training data\n",
+        "ensemble.fit(X_train, y_train)\n",
+        "\n",
+        "# Predict probabilities and class\n",
+        "ensemble_probs = ensemble.predict_proba(X_test)[:, 1]\n",
+        "ensemble_preds = (ensemble_probs > 0.5).astype(int)\n",
+        "\n",
+        "# Accuracy of the ensemble\n",
+        "test_acc = accuracy_score(y_test, ensemble_preds)\n",
+        "print(f\"Test Accuracy (Ensemble): {test_acc:.4f}\")"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Test Accuracy (Ensemble): 0.5619\n"
+        }
+      ],
+      "execution_count": 117,
+      "metadata": {
+        "gather": {
+          "logged": 1746836161471
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# FIX: Recompute realistic returns for the full test set (length 452)\n",
+        "X_test_reset = X_test.reset_index(drop=True)\n",
+        "test_dates = model_df.iloc[split_index:][\"date\"].reset_index(drop=True)\n",
+        "\n",
+        "realistic_returns = (\n",
+        "    model_df.iloc[split_index:]\n",
+        "    .eval(\"(close_935 - close_930) / close_930\")\n",
+        "    .reset_index(drop=True)\n",
+        ")"
+      ],
+      "outputs": [],
+      "execution_count": 119,
+      "metadata": {
+        "gather": {
+          "logged": 1746836269746
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 33: Ensemble Long-Only Strategy on Confident Predictions\n",
+        "\n",
+        "# Step 1: Choose confidence threshold\n",
+        "threshold = 0.65\n",
+        "\n",
+        "# Step 2: Identify confident long-only trades\n",
+        "confident_mask = ensemble_probs >= threshold\n",
+        "confident_preds = (ensemble_probs >= 0.5).astype(int)[confident_mask]\n",
+        "confident_returns = realistic_returns[confident_mask].reset_index(drop=True)\n",
+        "confident_dates = test_dates[confident_mask].reset_index(drop=True)\n",
+        "\n",
+        "# Step 3: Filter for long-only predictions\n",
+        "long_mask = confident_preds == 1\n",
+        "long_returns = confident_returns[long_mask].reset_index(drop=True)\n",
+        "long_dates = confident_dates[long_mask].reset_index(drop=True)\n",
+        "\n",
+        "# Step 4: Simulate equity curve\n",
+        "equity = [1.0]\n",
+        "for r in long_returns:\n",
+        "    equity.append(equity[-1] * (1 + r))\n",
+        "long_equity = pd.Series(equity[1:], index=long_dates)\n",
+        "\n",
+        "# Step 5: Evaluate performance\n",
+        "def evaluate_equity_curve(equity_curve, returns):\n",
+        "    total_return = equity_curve.iloc[-1] - 1\n",
+        "    years = (equity_curve.index[-1] - equity_curve.index[0]).days / 365.25\n",
+        "    cagr = (equity_curve.iloc[-1])**(1/years) - 1 if years > 0 else 0\n",
+        "    max_dd = ((equity_curve - equity_curve.cummax()) / equity_curve.cummax()).min()\n",
+        "    return {\n",
+        "        \"CAGR\": round(cagr * 100, 2),\n",
+        "        \"Total Return\": round(total_return * 100, 2),\n",
+        "        \"Max Drawdown\": round(max_dd * 100, 2),\n",
+        "        \"Total Trades\": len(returns),\n",
+        "        \"Win Rate\": round((returns > 0).mean() * 100, 2),\n",
+        "        \"Avg Win\": round(returns[returns > 0].mean() * 100, 2),\n",
+        "        \"Avg Loss\": round(returns[returns <= 0].mean() * 100, 2),\n",
+        "    }\n",
+        "\n",
+        "long_metrics = evaluate_equity_curve(long_equity, long_returns)\n",
+        "\n",
+        "# Step 6: Display results\n",
+        "print(\"\\n--- Ensemble Long-Only Strategy ---\")\n",
+        "for k, v in long_metrics.items():\n",
+        "    print(f\"{k}: {v}\")"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "\n--- Ensemble Long-Only Strategy ---\nCAGR: 1.1\nTotal Return: 1.07\nMax Drawdown: -0.33\nTotal Trades: 92\nWin Rate: 76.09\nAvg Win: 0.03\nAvg Loss: -0.05\n"
+        }
+      ],
+      "execution_count": 120,
+      "metadata": {
+        "gather": {
+          "logged": 1746836271748
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Step 1: Define confidence threshold and filter confident predictions\n",
+        "threshold = 0.65\n",
+        "confident_mask = ensemble_probs >= threshold\n",
+        "\n",
+        "confident_preds = (ensemble_probs >= 0.5).astype(int)[confident_mask]\n",
+        "confident_returns = realistic_returns.iloc[confident_mask.nonzero()[0]].reset_index(drop=True)\n",
+        "confident_dates = test_dates.iloc[confident_mask.nonzero()[0]].reset_index(drop=True)\n",
+        "\n",
+        "# Step 2: Long-only strategy: only keep trades where model predicts \"up\"\n",
+        "long_mask = confident_preds == 1\n",
+        "long_returns = confident_returns[long_mask].reset_index(drop=True)\n",
+        "long_dates = confident_dates[long_mask].reset_index(drop=True)\n",
+        "\n",
+        "# Step 3: Simulate equity curve\n",
+        "equity = [1.0]\n",
+        "for r in long_returns:\n",
+        "    equity.append(equity[-1] * (1 + r))\n",
+        "equity_curve = pd.Series(equity[1:], index=long_dates)\n",
+        "\n",
+        "# Step 4: Metrics\n",
+        "def evaluate_equity_curve(equity_series, returns):\n",
+        "    total_return = equity_series.iloc[-1] - 1\n",
+        "    years = (equity_series.index[-1] - equity_series.index[0]).days / 365.25\n",
+        "    cagr = (equity_series.iloc[-1])**(1 / years) - 1 if years > 0 else 0\n",
+        "    max_dd = (equity_series / equity_series.cummax() - 1).min()\n",
+        "    return {\n",
+        "        \"CAGR\": round(cagr * 100, 2),\n",
+        "        \"Total Return\": round(total_return * 100, 2),\n",
+        "        \"Max Drawdown\": round(max_dd * 100, 2),\n",
+        "        \"Total Trades\": len(returns),\n",
+        "        \"Win Rate\": round((returns > 0).mean() * 100, 2),\n",
+        "        \"Avg Win\": round(returns[returns > 0].mean() * 100, 2),\n",
+        "        \"Avg Loss\": round(returns[returns <= 0].mean() * 100, 2),\n",
+        "    }\n",
+        "\n",
+        "ensemble_long_metrics = evaluate_equity_curve(equity_curve, long_returns)\n",
+        "\n",
+        "print(\"\\n--- Ensemble Long-Only Strategy ---\")\n",
+        "for k, v in ensemble_long_metrics.items():\n",
+        "    print(f\"{k}: {v}\")"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "\n--- Ensemble Long-Only Strategy ---\nCAGR: 1.1\nTotal Return: 1.07\nMax Drawdown: -0.33\nTotal Trades: 92\nWin Rate: 76.09\nAvg Win: 0.03\nAvg Loss: -0.05\n"
+        }
+      ],
+      "execution_count": 121,
+      "metadata": {
+        "gather": {
+          "logged": 1746836376174
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 34: Ensemble Confidence Band Evaluation\n",
+        "\n",
+        "# Define function to evaluate a confidence band\n",
+        "def evaluate_ensemble_band(lower_bound, upper_bound, probs, preds, returns, dates):\n",
+        "    band_mask = (probs >= lower_bound) & (probs < upper_bound)\n",
+        "    if band_mask.sum() == 0:\n",
+        "        print(f\"\\nNo trades in band {lower_bound}–{upper_bound}\")\n",
+        "        return None, None\n",
+        "    \n",
+        "    band_preds = preds[band_mask]\n",
+        "    band_returns = returns[band_mask].reset_index(drop=True)\n",
+        "    band_dates = dates[band_mask].reset_index(drop=True)\n",
+        "\n",
+        "    # Simulate equity\n",
+        "    equity = [1.0]\n",
+        "    for r in band_returns:\n",
+        "        equity.append(equity[-1] * (1 + r))\n",
+        "    equity_series = pd.Series(equity[1:], index=band_dates)\n",
+        "\n",
+        "    # Compute metrics\n",
+        "    total_return = equity_series.iloc[-1] - 1\n",
+        "    years = (equity_series.index[-1] - equity_series.index[0]).days / 365.25\n",
+        "    cagr = (equity_series.iloc[-1]) ** (1 / years) - 1 if years > 0 else 0\n",
+        "    max_dd = (equity_series / equity_series.cummax() - 1).min()\n",
+        "\n",
+        "    metrics = {\n",
+        "        \"CAGR\": round(cagr * 100, 2),\n",
+        "        \"Total Return\": round(total_return * 100, 2),\n",
+        "        \"Max Drawdown\": round(max_dd * 100, 2),\n",
+        "        \"Total Trades\": len(band_returns),\n",
+        "        \"Win Rate\": round((band_returns > 0).mean() * 100, 2),\n",
+        "        \"Avg Win\": round(band_returns[band_returns > 0].mean() * 100, 2),\n",
+        "        \"Avg Loss\": round(band_returns[band_returns <= 0].mean() * 100, 2),\n",
+        "    }\n",
+        "\n",
+        "    return equity_series, metrics\n",
+        "\n",
+        "# Define bands to test\n",
+        "ensemble_bands = [(0.6, 0.65), (0.65, 0.7), (0.7, 0.75), (0.75, 0.8), (0.8, 1.0)]\n",
+        "ensemble_band_results = {}\n",
+        "\n",
+        "# Run evaluation for each band\n",
+        "for lower, upper in ensemble_bands:\n",
+        "    print(f\"\\nEvaluating ensemble band {lower}–{upper}\")\n",
+        "    eq_curve, metrics = evaluate_ensemble_band(\n",
+        "        lower, upper,\n",
+        "        ensemble_probs,\n",
+        "        ensemble_preds,\n",
+        "        realistic_returns,\n",
+        "        test_dates\n",
+        "    )\n",
+        "    if metrics:\n",
+        "        ensemble_band_results[(lower, upper)] = metrics\n",
+        "        for k, v in metrics.items():\n",
+        "            print(f\"{k}: {v}\")"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "\nEvaluating ensemble band 0.6–0.65\nCAGR: -0.47\nTotal Return: -0.45\nMax Drawdown: -0.68\nTotal Trades: 52\nWin Rate: 38.46\nAvg Win: 0.02\nAvg Loss: -0.03\n\nEvaluating ensemble band 0.65–0.7\nCAGR: 1.06\nTotal Return: 0.93\nMax Drawdown: -0.11\nTotal Trades: 54\nWin Rate: 74.07\nAvg Win: 0.03\nAvg Loss: -0.02\n\nEvaluating ensemble band 0.7–0.75\nCAGR: 0.43\nTotal Return: 0.3\nMax Drawdown: -0.33\nTotal Trades: 32\nWin Rate: 81.25\nAvg Win: 0.03\nAvg Loss: -0.1\n\nEvaluating ensemble band 0.75–0.8\nCAGR: -0.18\nTotal Return: -0.16\nMax Drawdown: -0.26\nTotal Trades: 6\nWin Rate: 66.67\nAvg Win: 0.02\nAvg Loss: -0.13\n\nEvaluating ensemble band 0.8–1.0\n\nNo trades in band 0.8–1.0\n"
+        }
+      ],
+      "execution_count": 122,
+      "metadata": {
+        "gather": {
+          "logged": 1746836462791
+        }
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Start of problems"
+      ],
+      "metadata": {
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "test_dates = pd.Series(test_dates).reset_index(drop=True) \n",
+        "realistic_returns = pd.Series(realistic_returns)"
+      ],
+      "outputs": [],
+      "execution_count": 195,
+      "metadata": {
+        "gather": {
+          "logged": 1746839558648
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Re-import necessary packages after code state reset\n",
+        "from sklearn.ensemble import VotingClassifier, RandomForestClassifier\n",
+        "from sklearn.linear_model import LogisticRegression\n",
+        "from xgboost import XGBClassifier\n",
+        "from sklearn.datasets import make_classification\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "\n",
+        "# Dummy data to simulate structure (replace with actual project data in notebook)\n",
+        "X, y = make_classification(n_samples=1000, n_features=10, random_state=42)\n",
+        "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)\n",
+        "\n",
+        "# Step 1: Refit base models on full training set\n",
+        "rf_model_full = RandomForestClassifier(n_estimators=100, random_state=42)\n",
+        "xgb_model_full = XGBClassifier(use_label_encoder=False, eval_metric=\"logloss\", random_state=42)\n",
+        "logreg_model_full = LogisticRegression(max_iter=1000, random_state=42)\n",
+        " \n",
+        "realistic_returns = pd.Series(realistic_returns)rf_model_full.fit(X_train, y_train)\n",
+        "xgb_model_full.fit(X_train, y_train)\n",
+        "logreg_model_full.fit(X_train, y_train)\n",
+        "\n",
+        "# Step 2: Build ensemble\n",
+        "ensemble_full = VotingClassifier(\n",
+        "    estimators=[\n",
+        "        (\"rf\", rf_model_full),\n",
+        "        (\"xgb\", xgb_model_full),\n",
+        "        (\"logreg\", logreg_model_full),\n",
+        "    ],\n",
+        "    voting=\"soft\"\n",
+        ")\n",
+        "\n",
+        "ensemble_full.fit(X_train, y_train)\n",
+        "\n",
+        "# Step 3: Generate predictions on X_test\n",
+        "ensemble_probs_full = ensemble_full.predict_proba(X_test)[:, 1]\n",
+        "ensemble_probs_full[:5]  # Display a sample of the predictions"
+      ],
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "execution_count": 204,
+          "data": {
+            "text/plain": "array([0.09936226, 0.98812819, 0.28472203, 0.89414292, 0.00791374])"
+          },
+          "metadata": {}
+        }
+      ],
+      "execution_count": 204,
+      "metadata": {
+        "gather": {
+          "logged": 1746839861818
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Block 36: Clean fix — realign confident trades for full ensemble prediction\n",
+        "\n",
+        "import pandas as pd\n",
+        "import numpy as np\n",
+        "\n",
+        "# Sanity check\n",
+        "print(\"ensemble_probs_full:\", len(ensemble_probs_full))\n",
+        "print(\"realistic_returns:\", len(realistic_returns))\n",
+        "print(\"test_dates:\", len(test_dates))\n",
+        "\n",
+        "# Step 1: Ensure everything is a Series of same length\n",
+        "ensemble_probs_full = pd.Series(ensemble_probs_full).reset_index(drop=True)\n",
+        "realistic_returns = pd.Series(realistic_returns).reset_index(drop=True)\n",
+        "test_dates = pd.Series(test_dates).reset_index(drop=True)\n",
+        "\n",
+        "# Step 2: Apply confidence mask (as NumPy array to avoid index mismatch)\n",
+        "threshold = 0.65\n",
+        "confident_mask = ensemble_probs_full >= threshold\n",
+        "\n",
+        "# Step 3: Filter using NumPy-style masking and reset\n",
+        "filtered_probs = ensemble_probs_full[confident_mask].reset_index(drop=True)\n",
+        "filtered_preds = ((ensemble_probs_full >= 0.5).astype(int))[confident_mask].reset_index(drop=True)\n",
+        "filtered_returns = realistic_returns[confident_mask].reset_index(drop=True)\n",
+        "filtered_dates = test_dates[confident_mask].reset_index(drop=True)\n",
+        "\n",
+        "# Step 4: Confirm alignment\n",
+        "print(\"Filtered lengths:\")\n",
+        "print(\"probs:\", len(filtered_probs))\n",
+        "print(\"preds:\", len(filtered_preds))\n",
+        "print(\"returns:\", len(filtered_returns))\n",
+        "print(\"dates:\", len(filtered_dates))"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "ensemble_probs_full: 300\nrealistic_returns: 452\ntest_dates: 452\n"
+        },
+        {
+          "output_type": "error",
+          "ename": "IndexingError",
+          "evalue": "Unalignable boolean Series provided as indexer (index of the boolean Series and of the indexed object do not match).",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mIndexingError\u001b[0m                             Traceback (most recent call last)",
+            "Cell \u001b[0;32mIn[211], line 23\u001b[0m\n\u001b[1;32m     21\u001b[0m filtered_probs \u001b[38;5;241m=\u001b[39m ensemble_probs_full[confident_mask]\u001b[38;5;241m.\u001b[39mreset_index(drop\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mTrue\u001b[39;00m)\n\u001b[1;32m     22\u001b[0m filtered_preds \u001b[38;5;241m=\u001b[39m ((ensemble_probs_full \u001b[38;5;241m>\u001b[39m\u001b[38;5;241m=\u001b[39m \u001b[38;5;241m0.5\u001b[39m)\u001b[38;5;241m.\u001b[39mastype(\u001b[38;5;28mint\u001b[39m))[confident_mask]\u001b[38;5;241m.\u001b[39mreset_index(drop\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mTrue\u001b[39;00m)\n\u001b[0;32m---> 23\u001b[0m filtered_returns \u001b[38;5;241m=\u001b[39m \u001b[43mrealistic_returns\u001b[49m\u001b[43m[\u001b[49m\u001b[43mconfident_mask\u001b[49m\u001b[43m]\u001b[49m\u001b[38;5;241m.\u001b[39mreset_index(drop\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mTrue\u001b[39;00m)\n\u001b[1;32m     24\u001b[0m filtered_dates \u001b[38;5;241m=\u001b[39m test_dates[confident_mask]\u001b[38;5;241m.\u001b[39mreset_index(drop\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mTrue\u001b[39;00m)\n\u001b[1;32m     26\u001b[0m \u001b[38;5;66;03m# Step 4: Confirm alignment\u001b[39;00m\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py38/lib/python3.10/site-packages/pandas/core/series.py:1003\u001b[0m, in \u001b[0;36mSeries.__getitem__\u001b[0;34m(self, key)\u001b[0m\n\u001b[1;32m   1000\u001b[0m     key \u001b[38;5;241m=\u001b[39m \u001b[38;5;28mlist\u001b[39m(key)\n\u001b[1;32m   1002\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m com\u001b[38;5;241m.\u001b[39mis_bool_indexer(key):\n\u001b[0;32m-> 1003\u001b[0m     key \u001b[38;5;241m=\u001b[39m \u001b[43mcheck_bool_indexer\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mindex\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mkey\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m   1004\u001b[0m     key \u001b[38;5;241m=\u001b[39m np\u001b[38;5;241m.\u001b[39masarray(key, dtype\u001b[38;5;241m=\u001b[39m\u001b[38;5;28mbool\u001b[39m)\n\u001b[1;32m   1005\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39m_get_values(key)\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py38/lib/python3.10/site-packages/pandas/core/indexing.py:2552\u001b[0m, in \u001b[0;36mcheck_bool_indexer\u001b[0;34m(index, key)\u001b[0m\n\u001b[1;32m   2550\u001b[0m indexer \u001b[38;5;241m=\u001b[39m result\u001b[38;5;241m.\u001b[39mindex\u001b[38;5;241m.\u001b[39mget_indexer_for(index)\n\u001b[1;32m   2551\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;241m-\u001b[39m\u001b[38;5;241m1\u001b[39m \u001b[38;5;129;01min\u001b[39;00m indexer:\n\u001b[0;32m-> 2552\u001b[0m     \u001b[38;5;28;01mraise\u001b[39;00m IndexingError(\n\u001b[1;32m   2553\u001b[0m         \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mUnalignable boolean Series provided as \u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m   2554\u001b[0m         \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mindexer (index of the boolean Series and of \u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m   2555\u001b[0m         \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mthe indexed object do not match).\u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m   2556\u001b[0m     )\n\u001b[1;32m   2558\u001b[0m result \u001b[38;5;241m=\u001b[39m result\u001b[38;5;241m.\u001b[39mtake(indexer)\n\u001b[1;32m   2560\u001b[0m \u001b[38;5;66;03m# fall through for boolean\u001b[39;00m\n",
+            "\u001b[0;31mIndexingError\u001b[0m: Unalignable boolean Series provided as indexer (index of the boolean Series and of the indexed object do not match)."
+          ]
+        }
+      ],
+      "execution_count": 211,
+      "metadata": {
+        "gather": {
+          "logged": 1746840258876
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "print(\"=== Diagnostic Summary ===\")\n",
+        "\n",
+        "# Raw lengths\n",
+        "print(\"Length of ensemble_probs_full:\", len(ensemble_probs_full))\n",
+        "print(\"Length of realistic_returns:\", len(realistic_returns))\n",
+        "print(\"Length of test_dates:\", len(test_dates))\n",
+        "\n",
+        "# If mask exists\n",
+        "try:\n",
+        "    print(\"Length of confident_mask:\", len(confident_mask))\n",
+        "    print(\"Type of confident_mask:\", type(confident_mask))\n",
+        "    print(\"First 5 values of confident_mask:\", confident_mask[:5])\n",
+        "except Exception as e:\n",
+        "    print(\"confident_mask not defined or failed:\", e)\n",
+        "\n",
+        "# Check filtered outputs if defined\n",
+        "for var_name in ['filtered_probs', 'filtered_preds', 'filtered_returns', 'filtered_dates']:\n",
+        "    try:\n",
+        "        val = eval(var_name)\n",
+        "        print(f\"Length of {var_name}: {len(val)}\")\n",
+        "    except Exception as e:\n",
+        "        print(f\"{var_name} not defined or failed:\", e)\n",
+        "\n",
+        "# Check index alignment\n",
+        "try:\n",
+        "    print(\"\\nIndex alignment check:\")\n",
+        "    print(\"filtered_probs.index == filtered_returns.index:\", filtered_probs.index.equals(filtered_returns.index))\n",
+        "    print(\"filtered_returns.index == filtered_dates.index:\", filtered_returns.index.equals(filtered_dates.index))\n",
+        "except Exception as e:\n",
+        "    print(\"Index alignment check failed:\", e)\n",
+        "\n",
+        "print(\"\\n=== End of Diagnostic ===\")"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "=== Diagnostic Summary ===\nLength of ensemble_probs_full: 300\nLength of realistic_returns: 452\nLength of test_dates: 452\nLength of confident_mask: 300\nType of confident_mask: <class 'numpy.ndarray'>\nFirst 5 values of confident_mask: [False  True False  True False]\nLength of filtered_probs: 146\nLength of filtered_preds: 146\nLength of filtered_returns: 232\nLength of filtered_dates: 232\n\nIndex alignment check:\nfiltered_probs.index == filtered_returns.index: False\nfiltered_returns.index == filtered_dates.index: True\n\n=== End of Diagnostic ===\n"
+        }
+      ],
+      "execution_count": 210,
+      "metadata": {
+        "gather": {
+          "logged": 1746840176201
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "import numpy as np\n",
+        "def adaptive_band_strategy(probs, preds, returns, dates, band_ranges, window_size=30, min_trades=3):\n",
+        "    \"\"\"\n",
+        "    Adaptive strategy that selects the best-performing confidence band over a rolling window\n",
+        "    and uses it to decide whether to take the next trade.\n",
+        "    \"\"\"\n",
+        "    probs = np.array(probs)\n",
+        "    preds = np.array(preds)\n",
+        "    returns = np.array(returns)\n",
+        "    dates = pd.to_datetime(np.array(dates))\n",
+        "    print(\"Inside function - lengths:\",\n",
+        "      len(probs), len(preds), len(returns), len(dates))\n",
+        "    df = pd.DataFrame({\n",
+        "    \"date\": dates,\n",
+        "    \"prob\": probs,\n",
+        "    \"pred\": preds,\n",
+        "    \"return\": returns\n",
+        "}).sort_values(\"date\").reset_index(drop=True)\n",
+        "\n",
+        "    equity = [1.0]\n",
+        "    equity_dates = []\n",
+        "    trade_returns = []\n",
+        "\n",
+        "    for i in range(window_size, len(df)):\n",
+        "        window_df = df.iloc[i - window_size:i]\n",
+        "        today_row = df.iloc[i]\n",
+        "        best_band = None\n",
+        "        best_score = -np.inf\n",
+        "\n",
+        "        for low, high in band_ranges:\n",
+        "            band_trades = window_df[(window_df[\"prob\"] >= low) & (window_df[\"prob\"] < high) & (window_df[\"pred\"] == 1)]\n",
+        "            if len(band_trades) >= min_trades:\n",
+        "                win_rate = (band_trades[\"return\"] > 0).mean()\n",
+        "                avg_return = band_trades[\"return\"].mean()\n",
+        "                score = win_rate * avg_return  # scoring: accuracy × average return\n",
+        "                if score > best_score:\n",
+        "                    best_score = score\n",
+        "                    best_band = (low, high)\n",
+        "\n",
+        "        # Apply today's trade if it fits the best band\n",
+        "        if best_band:\n",
+        "            if best_band[0] <= today_row[\"prob\"] < best_band[1] and today_row[\"pred\"] == 1:\n",
+        "                new_equity = equity[-1] * (1 + today_row[\"return\"])\n",
+        "                equity.append(new_equity)\n",
+        "                equity_dates.append(today_row[\"date\"])\n",
+        "                trade_returns.append(today_row[\"return\"])\n",
+        "            else:\n",
+        "                equity.append(equity[-1])  # no trade, flat\n",
+        "        else:\n",
+        "            equity.append(equity[-1])  # no band chosen\n",
+        "\n",
+        "    equity_series = pd.Series(equity[1:], index=equity_dates)\n",
+        "\n",
+        "    # Compute metrics\n",
+        "    if len(trade_returns) > 0:\n",
+        "        years = (equity_dates[-1] - equity_dates[0]).days / 365.25\n",
+        "        cagr = (equity[-1]) ** (1 / years) - 1 if years > 0 else 0\n",
+        "        max_dd = ((equity_series - equity_series.cummax()) / equity_series.cummax()).min()\n",
+        "        metrics = {\n",
+        "            \"CAGR\": round(cagr * 100, 2),\n",
+        "            \"Total Return\": round((equity[-1] - 1) * 100, 2),\n",
+        "            \"Max Drawdown\": round(max_dd * 100, 2),\n",
+        "            \"Total Trades\": len(trade_returns),\n",
+        "            \"Win Rate\": round((np.array(trade_returns) > 0).mean() * 100, 2),\n",
+        "            \"Avg Win\": round(np.mean([r for r in trade_returns if r > 0]) * 100, 2) if any(r > 0 for r in trade_returns) else 0,\n",
+        "            \"Avg Loss\": round(np.mean([r for r in trade_returns if r <= 0]) * 100, 2) if any(r <= 0 for r in trade_returns) else 0,\n",
+        "        }\n",
+        "    else:\n",
+        "        metrics = {\n",
+        "            \"CAGR\": 0, \"Total Return\": 0, \"Max Drawdown\": 0,\n",
+        "            \"Total Trades\": 0, \"Win Rate\": 0, \"Avg Win\": 0, \"Avg Loss\": 0\n",
+        "        }\n",
+        "\n",
+        "    import matplotlib.pyplot as plt\n",
+        "    plt.figure(figsize=(10, 4))\n",
+        "    plt.plot(equity_series.index, equity_series.values)\n",
+        "    plt.title(\"Adaptive Band Strategy Equity Curve\")\n",
+        "    plt.xlabel(\"Date\")\n",
+        "    plt.ylabel(\"Equity\")\n",
+        "    plt.grid(True)\n",
+        "    plt.tight_layout()\n",
+        "    plt.show()\n",
+        "\n",
+        "    return equity_series, metrics\n",
+        "\n",
+        "\"Adaptive band strategy function is ready. Paste this as Block 35 and call it using adaptive_band_strategy(...)\""
+      ],
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "execution_count": 198,
+          "data": {
+            "text/plain": "'Adaptive band strategy function is ready. Paste this as Block 35 and call it using adaptive_band_strategy(...)'"
+          },
+          "metadata": {}
+        }
+      ],
+      "execution_count": 198,
+      "metadata": {
+        "gather": {
+          "logged": 1746839567262
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Step 1: Set threshold and create confident mask\n",
+        "threshold = 0.65\n",
+        "confident_mask = ensemble_probs_full >= threshold\n",
+        "\n",
+        "# Step 2: Filter and reset all inputs to ensure clean alignment\n",
+        "filtered_probs = pd.Series(ensemble_probs_full[confident_mask]).reset_index(drop=True)\n",
+        "filtered_preds = pd.Series(((ensemble_probs_full >= 0.5).astype(int))[confident_mask]).reset_index(drop=True)\n",
+        "filtered_returns = pd.Series(realistic_returns[confident_mask]).reset_index(drop=True)\n",
+        "filtered_dates = pd.Series(test_dates[confident_mask]).reset_index(drop=True)\n",
+        "\n",
+        "# Step 3: Print lengths to verify alignment\n",
+        "print(\"Lengths:\")\n",
+        "print(\"probs:\", len(filtered_probs))\n",
+        "print(\"preds:\", len(filtered_preds))\n",
+        "print(\"returns:\", len(filtered_returns))\n",
+        "print(\"dates:\", len(filtered_dates))\n",
+        "\n",
+        "# Step 4: Run adaptive band strategy\n",
+        "eq_series, adaptive_metrics = adaptive_band_strategy(\n",
+        "    probs=filtered_probs,\n",
+        "    preds=filtered_preds,\n",
+        "    returns=filtered_returns,\n",
+        "    dates=filtered_dates,\n",
+        "    band_ranges=[(0.65, 0.7), (0.7, 0.75), (0.75, 0.8)],\n",
+        "    window_size=30,\n",
+        "    min_trades=3\n",
+        ")\n",
+        "\n",
+        "# Step 5: Display results\n",
+        "print(\"\\n--- Adaptive Confidence Band Strategy ---\")\n",
+        "for k, v in adaptive_metrics.items():\n",
+        "    print(f\"{k}: {v}\")"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Lengths:\nprobs: 232\npreds: 232\nreturns: 232\ndates: 232\nInside function - lengths: 232 232 232 232\n"
+        },
+        {
+          "output_type": "error",
+          "ename": "ValueError",
+          "evalue": "Length of values (202) does not match length of index (101)",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mValueError\u001b[0m                                Traceback (most recent call last)",
+            "Cell \u001b[0;32mIn[201], line 19\u001b[0m\n\u001b[1;32m     16\u001b[0m \u001b[38;5;28mprint\u001b[39m(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mdates:\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;28mlen\u001b[39m(filtered_dates))\n\u001b[1;32m     18\u001b[0m \u001b[38;5;66;03m# Step 4: Run adaptive band strategy\u001b[39;00m\n\u001b[0;32m---> 19\u001b[0m eq_series, adaptive_metrics \u001b[38;5;241m=\u001b[39m \u001b[43madaptive_band_strategy\u001b[49m\u001b[43m(\u001b[49m\n\u001b[1;32m     20\u001b[0m \u001b[43m    \u001b[49m\u001b[43mprobs\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mfiltered_probs\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m     21\u001b[0m \u001b[43m    \u001b[49m\u001b[43mpreds\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mfiltered_preds\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m     22\u001b[0m \u001b[43m    \u001b[49m\u001b[43mreturns\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mfiltered_returns\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m     23\u001b[0m \u001b[43m    \u001b[49m\u001b[43mdates\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mfiltered_dates\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m     24\u001b[0m \u001b[43m    \u001b[49m\u001b[43mband_ranges\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43m[\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m0.65\u001b[39;49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m0.7\u001b[39;49m\u001b[43m)\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m0.7\u001b[39;49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m0.75\u001b[39;49m\u001b[43m)\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m0.75\u001b[39;49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m0.8\u001b[39;49m\u001b[43m)\u001b[49m\u001b[43m]\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m     25\u001b[0m \u001b[43m    \u001b[49m\u001b[43mwindow_size\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[38;5;241;43m30\u001b[39;49m\u001b[43m,\u001b[49m\n\u001b[1;32m     26\u001b[0m \u001b[43m    \u001b[49m\u001b[43mmin_trades\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[38;5;241;43m3\u001b[39;49m\n\u001b[1;32m     27\u001b[0m \u001b[43m)\u001b[49m\n\u001b[1;32m     29\u001b[0m \u001b[38;5;66;03m# Step 5: Display results\u001b[39;00m\n\u001b[1;32m     30\u001b[0m \u001b[38;5;28mprint\u001b[39m(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;130;01m\\n\u001b[39;00m\u001b[38;5;124m--- Adaptive Confidence Band Strategy ---\u001b[39m\u001b[38;5;124m\"\u001b[39m)\n",
+            "Cell \u001b[0;32mIn[198], line 53\u001b[0m, in \u001b[0;36madaptive_band_strategy\u001b[0;34m(probs, preds, returns, dates, band_ranges, window_size, min_trades)\u001b[0m\n\u001b[1;32m     50\u001b[0m     \u001b[38;5;28;01melse\u001b[39;00m:\n\u001b[1;32m     51\u001b[0m         equity\u001b[38;5;241m.\u001b[39mappend(equity[\u001b[38;5;241m-\u001b[39m\u001b[38;5;241m1\u001b[39m])  \u001b[38;5;66;03m# no band chosen\u001b[39;00m\n\u001b[0;32m---> 53\u001b[0m equity_series \u001b[38;5;241m=\u001b[39m \u001b[43mpd\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mSeries\u001b[49m\u001b[43m(\u001b[49m\u001b[43mequity\u001b[49m\u001b[43m[\u001b[49m\u001b[38;5;241;43m1\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m]\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mindex\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mequity_dates\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m     55\u001b[0m \u001b[38;5;66;03m# Compute metrics\u001b[39;00m\n\u001b[1;32m     56\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mlen\u001b[39m(trade_returns) \u001b[38;5;241m>\u001b[39m \u001b[38;5;241m0\u001b[39m:\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py38/lib/python3.10/site-packages/pandas/core/series.py:461\u001b[0m, in \u001b[0;36mSeries.__init__\u001b[0;34m(self, data, index, dtype, name, copy, fastpath)\u001b[0m\n\u001b[1;32m    459\u001b[0m     index \u001b[38;5;241m=\u001b[39m default_index(\u001b[38;5;28mlen\u001b[39m(data))\n\u001b[1;32m    460\u001b[0m \u001b[38;5;28;01melif\u001b[39;00m is_list_like(data):\n\u001b[0;32m--> 461\u001b[0m     \u001b[43mcom\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mrequire_length_match\u001b[49m\u001b[43m(\u001b[49m\u001b[43mdata\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mindex\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    463\u001b[0m \u001b[38;5;66;03m# create/copy the manager\u001b[39;00m\n\u001b[1;32m    464\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28misinstance\u001b[39m(data, (SingleBlockManager, SingleArrayManager)):\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py38/lib/python3.10/site-packages/pandas/core/common.py:571\u001b[0m, in \u001b[0;36mrequire_length_match\u001b[0;34m(data, index)\u001b[0m\n\u001b[1;32m    567\u001b[0m \u001b[38;5;250m\u001b[39m\u001b[38;5;124;03m\"\"\"\u001b[39;00m\n\u001b[1;32m    568\u001b[0m \u001b[38;5;124;03mCheck the length of data matches the length of the index.\u001b[39;00m\n\u001b[1;32m    569\u001b[0m \u001b[38;5;124;03m\"\"\"\u001b[39;00m\n\u001b[1;32m    570\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mlen\u001b[39m(data) \u001b[38;5;241m!=\u001b[39m \u001b[38;5;28mlen\u001b[39m(index):\n\u001b[0;32m--> 571\u001b[0m     \u001b[38;5;28;01mraise\u001b[39;00m \u001b[38;5;167;01mValueError\u001b[39;00m(\n\u001b[1;32m    572\u001b[0m         \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mLength of values \u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m    573\u001b[0m         \u001b[38;5;124mf\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m(\u001b[39m\u001b[38;5;132;01m{\u001b[39;00m\u001b[38;5;28mlen\u001b[39m(data)\u001b[38;5;132;01m}\u001b[39;00m\u001b[38;5;124m) \u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m    574\u001b[0m         \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mdoes not match length of index \u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m    575\u001b[0m         \u001b[38;5;124mf\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m(\u001b[39m\u001b[38;5;132;01m{\u001b[39;00m\u001b[38;5;28mlen\u001b[39m(index)\u001b[38;5;132;01m}\u001b[39;00m\u001b[38;5;124m)\u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m    576\u001b[0m     )\n",
+            "\u001b[0;31mValueError\u001b[0m: Length of values (202) does not match length of index (101)"
+          ]
+        }
+      ],
+      "execution_count": 201,
+      "metadata": {
+        "gather": {
+          "logged": 1746839629604
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "eq_series, adaptive_metrics = adaptive_band_strategy(\n",
+        "    probs=ensemble_probs_full,\n",
+        "    preds=(ensemble_probs_full >= 0.5).astype(int),\n",
+        "    returns=realistic_returns,\n",
+        "    dates=test_dates,\n",
+        "    band_ranges=[(0.65, 0.7), (0.7, 0.75), (0.75, 0.8)],\n",
+        "    window_size=30,\n",
+        "    min_trades=3\n",
+        ")"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Inside function - lengths: 452 452 452 452\n"
+        },
+        {
+          "output_type": "error",
+          "ename": "ValueError",
+          "evalue": "Length of values (422) does not match length of index (102)",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mValueError\u001b[0m                                Traceback (most recent call last)",
+            "Cell \u001b[0;32mIn[200], line 1\u001b[0m\n\u001b[0;32m----> 1\u001b[0m eq_series, adaptive_metrics \u001b[38;5;241m=\u001b[39m \u001b[43madaptive_band_strategy\u001b[49m\u001b[43m(\u001b[49m\n\u001b[1;32m      2\u001b[0m \u001b[43m    \u001b[49m\u001b[43mprobs\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mensemble_probs_full\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m      3\u001b[0m \u001b[43m    \u001b[49m\u001b[43mpreds\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43m(\u001b[49m\u001b[43mensemble_probs_full\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m>\u001b[39;49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43m \u001b[49m\u001b[38;5;241;43m0.5\u001b[39;49m\u001b[43m)\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mastype\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;28;43mint\u001b[39;49m\u001b[43m)\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m      4\u001b[0m \u001b[43m    \u001b[49m\u001b[43mreturns\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mrealistic_returns\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m      5\u001b[0m \u001b[43m    \u001b[49m\u001b[43mdates\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mtest_dates\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m      6\u001b[0m \u001b[43m    \u001b[49m\u001b[43mband_ranges\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43m[\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m0.65\u001b[39;49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m0.7\u001b[39;49m\u001b[43m)\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m0.7\u001b[39;49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m0.75\u001b[39;49m\u001b[43m)\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m0.75\u001b[39;49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m0.8\u001b[39;49m\u001b[43m)\u001b[49m\u001b[43m]\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m      7\u001b[0m \u001b[43m    \u001b[49m\u001b[43mwindow_size\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[38;5;241;43m30\u001b[39;49m\u001b[43m,\u001b[49m\n\u001b[1;32m      8\u001b[0m \u001b[43m    \u001b[49m\u001b[43mmin_trades\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[38;5;241;43m3\u001b[39;49m\n\u001b[1;32m      9\u001b[0m \u001b[43m)\u001b[49m\n",
+            "Cell \u001b[0;32mIn[198], line 53\u001b[0m, in \u001b[0;36madaptive_band_strategy\u001b[0;34m(probs, preds, returns, dates, band_ranges, window_size, min_trades)\u001b[0m\n\u001b[1;32m     50\u001b[0m     \u001b[38;5;28;01melse\u001b[39;00m:\n\u001b[1;32m     51\u001b[0m         equity\u001b[38;5;241m.\u001b[39mappend(equity[\u001b[38;5;241m-\u001b[39m\u001b[38;5;241m1\u001b[39m])  \u001b[38;5;66;03m# no band chosen\u001b[39;00m\n\u001b[0;32m---> 53\u001b[0m equity_series \u001b[38;5;241m=\u001b[39m \u001b[43mpd\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mSeries\u001b[49m\u001b[43m(\u001b[49m\u001b[43mequity\u001b[49m\u001b[43m[\u001b[49m\u001b[38;5;241;43m1\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m]\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mindex\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mequity_dates\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m     55\u001b[0m \u001b[38;5;66;03m# Compute metrics\u001b[39;00m\n\u001b[1;32m     56\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mlen\u001b[39m(trade_returns) \u001b[38;5;241m>\u001b[39m \u001b[38;5;241m0\u001b[39m:\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py38/lib/python3.10/site-packages/pandas/core/series.py:461\u001b[0m, in \u001b[0;36mSeries.__init__\u001b[0;34m(self, data, index, dtype, name, copy, fastpath)\u001b[0m\n\u001b[1;32m    459\u001b[0m     index \u001b[38;5;241m=\u001b[39m default_index(\u001b[38;5;28mlen\u001b[39m(data))\n\u001b[1;32m    460\u001b[0m \u001b[38;5;28;01melif\u001b[39;00m is_list_like(data):\n\u001b[0;32m--> 461\u001b[0m     \u001b[43mcom\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mrequire_length_match\u001b[49m\u001b[43m(\u001b[49m\u001b[43mdata\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mindex\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    463\u001b[0m \u001b[38;5;66;03m# create/copy the manager\u001b[39;00m\n\u001b[1;32m    464\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28misinstance\u001b[39m(data, (SingleBlockManager, SingleArrayManager)):\n",
+            "File \u001b[0;32m/anaconda/envs/azureml_py38/lib/python3.10/site-packages/pandas/core/common.py:571\u001b[0m, in \u001b[0;36mrequire_length_match\u001b[0;34m(data, index)\u001b[0m\n\u001b[1;32m    567\u001b[0m \u001b[38;5;250m\u001b[39m\u001b[38;5;124;03m\"\"\"\u001b[39;00m\n\u001b[1;32m    568\u001b[0m \u001b[38;5;124;03mCheck the length of data matches the length of the index.\u001b[39;00m\n\u001b[1;32m    569\u001b[0m \u001b[38;5;124;03m\"\"\"\u001b[39;00m\n\u001b[1;32m    570\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mlen\u001b[39m(data) \u001b[38;5;241m!=\u001b[39m \u001b[38;5;28mlen\u001b[39m(index):\n\u001b[0;32m--> 571\u001b[0m     \u001b[38;5;28;01mraise\u001b[39;00m \u001b[38;5;167;01mValueError\u001b[39;00m(\n\u001b[1;32m    572\u001b[0m         \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mLength of values \u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m    573\u001b[0m         \u001b[38;5;124mf\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m(\u001b[39m\u001b[38;5;132;01m{\u001b[39;00m\u001b[38;5;28mlen\u001b[39m(data)\u001b[38;5;132;01m}\u001b[39;00m\u001b[38;5;124m) \u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m    574\u001b[0m         \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mdoes not match length of index \u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m    575\u001b[0m         \u001b[38;5;124mf\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m(\u001b[39m\u001b[38;5;132;01m{\u001b[39;00m\u001b[38;5;28mlen\u001b[39m(index)\u001b[38;5;132;01m}\u001b[39;00m\u001b[38;5;124m)\u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m    576\u001b[0m     )\n",
+            "\u001b[0;31mValueError\u001b[0m: Length of values (422) does not match length of index (102)"
+          ]
+        }
+      ],
+      "execution_count": 200,
+      "metadata": {
+        "gather": {
+          "logged": 1746839573638
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python38-azureml",
+      "language": "python",
+      "display_name": "Python 3.10 - AzureML"
+    },
+    "language_info": {
+      "name": "python",
+      "version": "3.10.11",
+      "mimetype": "text/x-python",
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "pygments_lexer": "ipython3",
+      "nbconvert_exporter": "python",
+      "file_extension": ".py"
+    },
+    "microsoft": {
+      "ms_spell_check": {
+        "ms_spell_check_language": "en"
+      },
+      "host": {
+        "AzureML": {
+          "notebookHasBeenCompleted": true
+        }
+      }
+    },
+    "kernel_info": {
+      "name": "python38-azureml"
+    },
+    "nteract": {
+      "version": "nteract-front-end@1.0.0"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 2
+}
